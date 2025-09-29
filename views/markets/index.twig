@@ -1,0 +1,63 @@
+{% extends "layout.twig" %}
+
+{% block title %}المتاجر{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h4 mb-0">المتاجر</h1>
+  {% if scoped_market_id is null %}
+    <a href="{{ base }}/create" class="btn btn-primary">إضافة متجر</a>
+  {% endif %}
+</div>
+
+{# ✅ استنتجنا /admincp من /admincp/markets #}
+{% set base_path = base|split('/')|slice(0, -1)|join('/') %}
+
+{% if markets is empty %}
+  <div class="alert alert-info">لا توجد متاجر.</div>
+{% else %}
+  <div class="row row-cols-1 row-cols-md-2 g-3">
+    {% for m in markets %}
+      <div class="col">
+        <div class="card h-100">
+          <div class="card-body">
+            <div class="d-flex align-items-center gap-3">
+
+              {# المعلومات يسار الشعار #}
+              <div class="flex-grow-1">
+                <div class="d-flex justify-content-between align-items-center">
+                  <h5 class="mb-0 text-truncate">{{ m.name }}</h5>
+                  <span class="badge {{ m.status == 'active' ? 'bg-success' : 'bg-secondary' }}">
+                    {{ m.status == 'active' ? 'نشط' : 'غير نشط' }}
+                  </span>
+                </div>
+                {% if m.desc %}
+                  <div class="text-muted small mt-1">
+                    {{ m.desc|length > 120 ? m.desc|slice(0,120) ~ '…' : m.desc }}
+                  </div>
+                {% endif %}
+              </div>
+
+              {# الشعار يمين — شعار حقيقي من /uploads أو Placeholder من /admincp/assets #}
+              <div class="flex-shrink-0">
+                {% set logoSrc = m.logo ? '/uploads/' ~ m.logo : base_path ~ '/assets/img/logo-placeholder.png' %}
+                <img src="{{ logoSrc }}" alt="{{ m.name }}"
+                     class="rounded border"
+                     style="width:56px;height:56px;object-fit:cover;">
+              </div>
+
+            </div>
+          </div>
+
+          <div class="card-footer d-flex gap-2">
+            <a href="{{ base }}/{{ m.id }}" class="btn btn-sm btn-outline-primary">عرض</a>
+            {% if (scoped_market_id is null) or (scoped_market_id == m.id) %}
+              <a href="{{ base }}/{{ m.id }}/edit" class="btn btn-sm btn-outline-secondary">تعديل</a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
+{% endblock %}

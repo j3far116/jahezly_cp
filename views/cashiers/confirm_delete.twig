@@ -1,0 +1,25 @@
+{% extends "layout.twig" %}
+{% block title %}تأكيد حذف الكاشير: {{ row.name }}{% endblock %}
+
+{% block content %}
+  <div class="card">
+    <div class="card-header">تأكيد الحذف</div>
+    <div class="card-body">
+      <p class="mb-3">
+        هل أنت متأكد من حذف الكاشير
+        <strong>{{ row.name }}</strong>
+        (ID: {{ row.id }}) من المتجر
+        <a href="{{ url('/markets') }}/{{ row.market_id }}">{{ market.name }}</a>؟
+      </p>
+
+      <div class="d-flex gap-2">
+        <form method="post" action="{{ base }}/{{ row.id }}/delete">
+          <input type="hidden" name="_csrf" value="{{ _csrf }}">
+          <button type="submit" class="btn btn-danger">تأكيد الحذف</button>
+        </form>
+
+        <a class="btn btn-secondary" href="{{ base }}">إلغاء</a>
+      </div>
+    </div>
+  </div>
+{% endblock %}

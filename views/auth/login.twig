@@ -1,0 +1,81 @@
+{% extends "layout.twig" %}
+{% block title %}تسجيل الدخول{% endblock %}
+
+
+{% block content %}
+
+<style>
+  /* يلغي تنسيق الكرت الخارجي القادم من layout لهذه الصفحة فقط */
+  .container > .card {
+    border: 0;
+    background: transparent;
+    box-shadow: none !important;
+    
+  }
+  .container > .card > .card-body {
+    padding: 0;
+    background: transparent;
+    box-shadow: none !important;
+  }
+</style>
+
+
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-12 col-sm-10 col-md-8 col-lg-5">
+      <div class="card shadow-sm">
+        <div class="card-body p-4 p-md-5">
+          <h1 class="h4 mb-4 text-center">تسجيل الدخول</h1>
+
+          {# رسائل فلاش (اختياري) #}
+          {% if flash is defined and flash.success %}
+            <div class="alert alert-success mb-3">{{ flash.success }}</div>
+          {% endif %}
+          {% if flash is defined and flash.error %}
+            <div class="alert alert-danger mb-3">{{ flash.error }}</div>
+          {% endif %}
+
+          <form method="post" action="{{ url('/login') }}">
+            {{ csrf_field()|raw }}
+
+            <div class="mb-3">
+              <label for="email" class="form-label">البريد الإلكتروني</label>
+              <input
+                id="email"
+                class="form-control"
+                type="email"
+                name="email"
+                required
+                autocomplete="username"
+                placeholder="name@example.com">
+            </div>
+
+            <div class="mb-3">
+              <label for="password" class="form-label">كلمة المرور</label>
+              <input
+                id="password"
+                class="form-control"
+                type="password"
+                name="password"
+                required
+                autocomplete="current-password"
+                placeholder="••••••••">
+            </div>
+
+            <div class="mb-3 form-check">
+              <input class="form-check-input" type="checkbox" id="remember" name="remember" value="1">
+              <label class="form-check-label" for="remember">تذكرني</label>
+            </div>
+
+            <button class="btn btn-primary w-100" type="submit">دخول</button>
+          </form>
+        </div>
+      </div>
+
+      <p class="text-center text-muted mt-3 mb-0 small">
+        بدخولك، فأنت توافق على الشروط وسياسة الخصوصية.
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends "layout.twig" %}
+{% block title %}تعديل مستخدم{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h5 mb-0">تعديل مستخدم</h1>
+  <a class="btn btn-secondary" href="{{ base }}">رجوع</a>
+</div>
+
+<form method="post" action="{{ base }}/{{ values.id }}">
+  {% include 'users/_form.twig' with { values: values, errors: errors, _csrf: _csrf } %}
+  <div class="mt-3 d-flex gap-2">
+    <button type="submit" class="btn btn-primary">حفظ التعديلات</button>
+    <a href="{{ base }}" class="btn btn-outline-secondary">إلغاء</a>
+  </div>
+</form>
+{% endblock %}

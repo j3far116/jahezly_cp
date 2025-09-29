@@ -1,0 +1,98 @@
+{% extends "layout.twig" %}
+
+{% block title %}تحرير الكاشير: {{ market.name }}{% endblock %}
+
+{% block content %}
+  <h1 class="h5 mb-1">تحرير بيانات الكاشير</h1>
+
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+      <h2 class="h6 mb-1">الكاشير</h2>
+      <div class="text-muted">المتجر: <strong>{{ market.name }}</strong></div>
+    </div>
+    <div class="d-flex gap-2">
+      <a class="btn btn-secondary" href="{{ base }}">رجوع للقائمة</a>
+    </div>
+  </div>
+
+  {# نموذج التعديل #}
+  <form method="post" action="{{ base }}/{{ assign.id }}">
+    <input type="hidden" name="_csrf" value="{{ _csrf }}">
+
+    <div class="row g-3">
+      <div class="col-md-6">
+        <label class="form-label">الاسم</label>
+        <input type="text" name="name" class="form-control" value="{{ assign.name }}" required>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">اسم المستخدم (username)</label>
+        <input type="text"
+               name="username"
+               class="form-control"
+               value="{{ assign.username }}"
+               required
+               pattern="^[A-Za-z0-9_]{3,20}$">
+        <div class="form-text">3–20 محرفًا (حروف/أرقام/شرطة سفلية فقط).</div>
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label">الدور</label>
+        <select name="role" class="form-select" required>
+          <option value="cashier" {{ assign.role=='cashier' ? 'selected' : '' }}>كاشير</option>
+          <option value="owner"   {{ assign.role=='owner'   ? 'selected' : '' }}>مالك</option>
+        </select>
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label">الحالة</label>
+        <select name="status" class="form-select" required>
+          <option value="active"    {{ assign.status=='active'    ? 'selected' : '' }}>نشط</option>
+          <option value="suspended" {{ assign.status=='suspended' ? 'selected' : '' }}>معلّق</option>
+        </select>
+      </div>
+
+      {# كلمة المرور اختيارية: تُحدّث فقط عند تعبئتها #}
+      <div class="col-md-3">
+        <label class="form-label">كلمة المرور الجديدة (اختياري)</label>
+        <input type="password"
+               name="password"
+               class="form-control"
+               placeholder="اتركها فارغة للإبقاء على الحالية"
+               minlength="6">
+        <div class="form-text">6+ أحرف/أرقام. إن تُركت فارغة سيُبقى على الحالية.</div>
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label">تأكيد كلمة المرور</label>
+        <input type="password" name="password_confirm" class="form-control" placeholder="أعد إدخال كلمة المرور">
+      </div>
+
+      <div class="col-12">
+        <label class="form-label">الفروع المسموح بها (اختياري)</label>
+        <select name="branch_ids[]" class="form-select" multiple size="6">
+          {% set current = assign.branch_ids ?? [] %}
+          {% for b in branches %}
+            <option value="{{ b.id }}" {{ b.id in current ? 'selected' : '' }}>{{ b.name }}</option>
+          {% else %}
+            <option value="">لا توجد فروع لهذا المتجر</option>
+          {% endfor %}
+        </select>
+        <div class="form-text">اتركها فارغة للسماح بكل فروع المتجر.</div>
+      </div>
+    </div>
+
+    <div class="mt-3 d-flex gap-2">
+      <button class="btn btn-primary" type="submit">حفظ التغييرات</button>
+      <a class="btn btn-outline-secondary" href="{{ base }}">إلغاء</a>
+    </div>
+  </form>
+
+  {# حذف بدون سكربت: صفحة تأكيد وسيطة (ينبغي أن تكون مضافة في الراوتر) #}
+  <div class="mt-4">
+    <a class="btn btn-sm btn-outline-danger"
+       href="{{ base }}/{{ assign.id }}/delete/confirm">
+      حذف
+    </a>
+  </div>
+{% endblock %}

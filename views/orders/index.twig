@@ -1,0 +1,69 @@
+{% extends "layout.twig" %}
+{% block title %}الطلبات{% endblock %}
+
+{% block content %}
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="h4 mb-0">قائمة الطلبات</h2>
+    <div>
+      {# زر فتح مودال الفلاتر #}
+      {% include 'orders/filters.twig' with {
+        allowedStatus: allowedStatus,
+        allowedPayStatus: allowedPayStatus,
+        allowedPayType: allowedPayType,
+        filters: filters,
+        per_page: per_page
+      } %}
+    </div>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-hover align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>#</th>
+          <th>User</th>
+          <th>Market</th>
+          <th>Total</th>
+          <th>Status</th>
+          <th>Pay Type</th>
+          <th>Pay Status</th>
+          <th>Created</th>
+          <th>إجراءات</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for o in orders %}
+        <tr>
+          <td><a href="{{ url('/orders/' ~ o.id) }}">{{ o.id }}</a></td>
+          <td>{{ o.user_id }}</td>
+          <td>{{ o.market_name }} ({{ o.market_id }})</td>
+          <td>{{ o.total }}</td>
+          <td>{{ o.status }}</td>
+          <td>{{ o.pay_type }}</td>
+          <td>{{ o.pay_status }}</td>
+          <td>{{ o.created_at }}</td>
+          <td class="text-nowrap">
+            <button type="button" class="btn btn-outline-danger btn-sm btn-delete"
+                    data-url="{{ url('/orders/' ~ o.id ~ '/delete') }}"
+                    data-confirm="هل أنت متأكد من حذف هذا الطلب؟">
+              حذف
+            </button>
+          </td>
+        </tr>
+      {% else %}
+        <tr><td colspan="9" class="text-center text-muted">لا توجد طلبات</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="d-flex justify-content-between align-items-center mt-3">
+    <div class="text-muted">إجمالي: {{ total }} — صفحة {{ page }}/{{ total_pages }}</div>
+    <div class="btn-group">
+      {% if pagination.first_url %}<a class="btn btn-outline-secondary btn-sm" href="{{ pagination.first_url }}">الأولى</a>{% endif %}
+      {% if pagination.prev_url  %}<a class="btn btn-outline-secondary btn-sm" href="{{ pagination.prev_url }}">السابق</a>{% endif %}
+      {% if pagination.next_url  %}<a class="btn btn-outline-secondary btn-sm" href="{{ pagination.next_url }}">التالي</a>{% endif %}
+      {% if pagination.last_url  %}<a class="btn btn-outline-secondary btn-sm" href="{{ pagination.last_url }}">الأخيرة</a>{% endif %}
+    </div>
+  </div>
+{% endblock %}

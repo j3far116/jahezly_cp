@@ -1,0 +1,66 @@
+{% extends "layout.twig" %}
+{% block title %}فروع: {{ market.name }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h1 class="h5 mb-1">فروع المتجر</h1>
+    <div class="text-muted">المتجر: <strong>{{ market.name }}</strong></div>
+  </div>
+  <div class="d-flex gap-2">
+    <a class="btn btn-secondary" href="{{ markets_base }}/{{ market.id }}">رجوع للمتجر</a>
+    {% if (scoped_market_id is null) or (scoped_market_id == market.id) %}
+      <a class="btn btn-primary" href="{{ base }}/create">إضافة فرع</a>
+    {% endif %}
+  </div>
+</div>
+
+{% if branches is empty %}
+  <div class="alert alert-info">لا توجد فروع لهذا المتجر.</div>
+{% else %}
+  <div class="table-responsive">
+    <table class="table align-middle">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>الفرع</th>
+          <th>النوع</th>
+          <th>الموقع (ID)</th>
+          <th>الحالة</th>
+          <th>العنوان</th>
+          <th>أُنشئ في</th>
+          <th class="text-end">إجراءات</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for b in branches %}
+        <tr>
+          <td>{{ b.id }}</td>
+          <td>{{ b.name }}</td>
+          <td>{{ b.type }}</td>
+          <td>{{ b.location_id }}</td>
+          <td>
+            <span class="badge {{ b.status == 'active' ? 'bg-success' : 'bg-secondary' }}">
+              {{ b.status == 'active' ? 'نشط' : 'غير نشط' }}
+            </span>
+          </td>
+          <td>{{ b.address ?: '—' }}</td>
+          <td>{{ b.created_at }}</td>
+          <td class="text-end">
+            <a href="{{ base }}/{{ b.id }}" class="btn btn-sm btn-outline-primary">عرض</a>
+            {% if (scoped_market_id is null) or (scoped_market_id == market.id) %}
+              <a href="{{ base }}/{{ b.id }}/edit" class="btn btn-sm btn-outline-secondary">تعديل</a>
+              <form method="post" action="{{ base }}/{{ b.id }}/delete" class="d-inline"
+                    onsubmit="return confirm('تأكيد الحذف؟');">
+                <input type="hidden" name="_csrf" value="{{ _csrf }}">
+                <button type="submit" class="btn btn-sm btn-outline-danger">حذف</button>
+              </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endif %}
+{% endblock %}

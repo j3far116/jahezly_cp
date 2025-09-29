@@ -1,0 +1,149 @@
+{% extends "layout.twig" %}
+{% block title %}
+	{{ market.name }}
+{% endblock %}
+
+{% block content %}
+
+	<div class="d-flex justify-content-between align-items-center mb-3">
+		<h1 class="h4 mb-0">تفاصيل المتجر:
+			{{ market.name }}</h1>
+		<div class="d-flex gap-2">
+			{% if session.user and session.user.role == 'admin' %}
+				<a class="btn btn-secondary" href="{{ base }}">رجوع للقائمة</a>
+			{% endif %}
+			{% if (scoped_market_id is null) or (scoped_market_id == market.id) %}
+				<a class="btn btn-outline-secondary" href="{{ base }}/{{ market.id }}/cashiers">الكاشير</a>
+				<button class="btn btn-outline-primary" data-media="cover" data-market-id="{{ market.id }}" data-bs-toggle="modal" data-bs-target="#mediaCropModal">تغيير صورة العرض</button>
+				<button class="btn btn-outline-primary" data-media="logo" data-market-id="{{ market.id }}" data-bs-toggle="modal" data-bs-target="#mediaCropModal">تغيير الشعار</button>
+				<a class="btn btn-primary" href="{{ base }}/{{ market.id }}/edit">تعديل</a>
+				{% if scoped_market_id is null %}
+					<button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#confirmDeleteMarket">حذف</button>
+				{% endif %}
+			{% endif %}
+		</div>
+	</div>
+
+	{# ✅ استنتاج /admincp من /admincp/markets لاستخدامه مع الأصول الثابتة #}
+	{% set base_path = base|split('/')|slice(0, -1)|join('/') %}
+
+	<div
+		class="card mb-4">
+		{# الغلاف مع بديل افتراضي إن لم يتوفر #}
+		{% if market.cover %}
+			<div class="card-img-top overflow-hidden" style="height:180px;">
+				<img id="market-cover" src="/uploads/{{ market.cover }}" alt="{{ market.name }}" style="width:100%; height:100%; object-fit:cover; object-position:center; display:block;">
+			</div>
+		{% else %}
+			<div class="card-img-top bg-light" style="height:180px;"></div>
+		{% endif %}
+
+		<div class="card-body">
+			<div
+				class="d-flex align-items-center mb-3">
+				{# الشعار: دائمًا اعرض <img> مع مسار بديل افتراضي عند عدم توفر الشعار #}
+				{% set logoSrc = market.logo ? '/uploads/' ~ market.logo : base_path ~ '/assets/img/logo-placeholder.png' %}
+				<img id="market-logo" src="{{ logoSrc }}" alt="{{ market.name }}" class="rounded me-3" style="width:64px;height:64px;object-fit:cover;">
+
+				<div>
+					<h5 class="card-title mb-1">{{ market.name }}</h5>
+					<span class="badge {{ market.status == 'active' ? 'bg-success' : 'bg-secondary' }}">
+						{{ market.status == 'active' ? 'نشط' : 'غير نشط' }}
+					</span>
+				</div>
+			</div>
+
+			{% if market.desc %}
+				<p class="mb-2">{{ market.desc }}</p>
+			{% endif %}
+
+			<dl class="row mb-0">
+				<dt class="col-sm-3">المعرف</dt>
+				<dd class="col-sm-9">{{ market.id }}</dd>
+				<dt class="col-sm-3">تاريخ الإنشاء</dt>
+				<dd class="col-sm-9">{{ market.created_at }}</dd>
+			</dl>
+		</div>
+	</div>
+
+	{# ====== جدول الفروع كما تم اعتماده سابقًا ====== #}
+	{% include "branches/_list.twig" with {
+		market: market,
+		branches: branches,
+		branches_base: branches_base,
+		scoped_market_id: scoped_market_id,
+		show_title: true,
+		show_add_button: true
+	} %}
+
+	{# ====== Modal: قص/رفع الصورة (cover/logo) ====== #}
+	<div class="modal fade" id="mediaCropModal" tabindex="-1" aria-labelledby="mediaCropModalLabel" aria-hidden="true">
+		<div class="modal-dialog modal-lg modal-dialog-scrollable">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="mediaCropModalLabel">تحديث الصورة</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+				</div>
+				<div class="modal-body">
+					<div class="mb-3 d-flex gap-2">
+						<input type="file" id="media-file" accept="image/*" class="form-control" style="max-width: 300px;">
+						<div class="text-muted small flex-grow-1">اختر صورة ثم قصّها قبل الحفظ.</div>
+					</div>
+
+					{# معاينة القص — بدون ratio لتفادي ارتفاع = 0 لو CSS غير محمّل #}
+					<div id="cropper-wrap" class="border rounded overflow-hidden mb-2" style="display:none; min-height:320px; background:#f8f9fa;">
+						<img id="cropper-target" alt="preview" style="display:block; max-width:100%; max-height:70vh; margin:auto;">
+					</div>
+
+					<div id="cropper-tools" class="d-flex justify-content-between align-items-center" style="display:none;">
+						<div class="btn-group">
+							<button class="btn btn-sm btn-outline-secondary" data-act="zoom-in" type="button">تكبير</button>
+							<button class="btn btn-sm btn-outline-secondary" data-act="zoom-out" type="button">تصغير</button>
+							<button class="btn btn-sm btn-outline-secondary" data-act="rotate-left" type="button">تدوير ⟲</button>
+							<button class="btn btn-sm btn-outline-secondary" data-act="rotate-right" type="button">تدوير ⟳</button>
+							<button class="btn btn-sm btn-outline-secondary" data-act="reset" type="button">إعادة</button>
+						</div>
+						<div class="text-muted small">القص يختلف حسب النوع (غلاف/شعار)</div>
+					</div>
+
+				</div>
+				<div class="modal-footer">
+					<input type="hidden" id="media-type" value="">
+					<input type="hidden" id="_csrf_media" value="{{ _csrf }}">
+					<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+					<button type="button" class="btn btn-primary" id="btn-save-media" disabled>قصّ وحفظ</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	{# ====== Modal حذف المتجر ====== #}
+	{% if scoped_market_id is null %}
+		<div class="modal fade" id="confirmDeleteMarket" tabindex="-1" aria-labelledby="confirmDeleteMarketLabel" aria-hidden="true">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h5 class="modal-title" id="confirmDeleteMarketLabel">تأكيد الحذف</h5>
+						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+					</div>
+					<div class="modal-body">هل أنت متأكد من حذف المتجر
+						<strong>{{ market.name }}</strong>؟</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+						<form method="post" action="{{ base }}/{{ market.id }}/delete" class="d-inline">
+							<input type="hidden" name="_csrf" value="{{ _csrf }}">
+							<button type="submit" class="btn btn-danger">تأكيد الحذف</button>
+						</form>
+					</div>
+				</div>
+			</div>
+		</div>
+	{% endif %}
+
+	{# تحميل ملفات Cropper والأصول #}
+	{% set bp = (bp is defined ? bp : '/admincp') %}
+	<link rel="stylesheet" href="{{ bp }}/assets/cropper/cropper.min.css">
+ <script src="{{ bp }}/assets/cropper/cropper.min.js"></script>
+	 <script src="{{ bp }}/assets/markets-media.js"></script>
+
+{% endblock %}

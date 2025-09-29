@@ -1,0 +1,15 @@
+{% extends "layout.twig" %}
+{% block title %}الرئيسية{% endblock %}
+
+{% block content %}
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+      <h2 class="h4 mb-1">مرحبًا {{ session.user.name ?? '' }}</h2>
+      <div class="text-muted">دورك الحالي: <strong>{{ session.user.role ?? '' }}</strong></div>
+    </div>
+    <div class="d-flex gap-2">
+      <a class="btn btn-outline-primary btn-sm" href="{{ url('/users') }}">المستخدمون</a>
+      <a class="btn btn-outline-primary btn-sm" href="{{ url('/orders') }}">الطلبات</a>
+    </div>
+  </div>
+{% endblock %}

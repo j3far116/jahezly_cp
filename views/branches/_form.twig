@@ -1,0 +1,47 @@
+<div class="mb-3">
+  <label class="form-label">اسم الفرع</label>
+  <input type="text" name="name" class="form-control {% if errors.name %}is-invalid{% endif %}" value="{{ values.name }}" maxlength="150" required>
+  {% if errors.name %}<div class="invalid-feedback">{{ errors.name }}</div>{% endif %}
+</div>
+
+<div class="row g-3">
+  <div class="col-md-6">
+    <label class="form-label">النوع</label>
+    <select name="type" class="form-select {% if errors.type %}is-invalid{% endif %}" required>
+      <option value="1" {% if values.type|default('1') == '1' %}selected{% endif %}>المطاعم</option>
+      <option value="2" {% if values.type|default('1') == '2' %}selected{% endif %}>الكافيهات</option>
+    </select>
+    {% if errors.type %}<div class="invalid-feedback">{{ errors.type }}</div>{% endif %}
+  </div>
+
+  <div class="col-md-6">
+    <label class="form-label">الموقع</label>
+    <select name="location_id" class="form-select {% if errors.location_id %}is-invalid{% endif %}" required>
+      {% if locations is not empty %}
+        {% for loc in locations %}
+          <option value="{{ loc.id }}" {% if values.location_id|default('') == loc.id %}selected{% endif %}>{{ loc.name }}</option>
+        {% endfor %}
+      {% else %}
+        <option value="" disabled selected>لا توجد مواقع مفعّلة</option>
+      {% endif %}
+    </select>
+    {% if errors.location_id %}<div class="invalid-feedback">{{ errors.location_id }}</div>{% endif %}
+  </div>
+</div>
+
+<div class="mb-3 mt-3">
+  <label class="form-label">الحالة</label>
+  <select name="status" class="form-select {% if errors.status %}is-invalid{% endif %}">
+    <option value="active"   {% if values.status == 'active' %}selected{% endif %}>نشط</option>
+    <option value="inactive" {% if values.status == 'inactive' %}selected{% endif %}>غير نشط</option>
+  </select>
+  {% if errors.status %}<div class="invalid-feedback">{{ errors.status }}</div>{% endif %}
+</div>
+
+<div class="mb-3">
+  <label class="form-label">العنوان (اختياري)</label>
+  <input type="text" name="address" class="form-control {% if errors.address %}is-invalid{% endif %}" value="{{ values.address }}" maxlength="255">
+  {% if errors.address %}<div class="invalid-feedback">{{ errors.address }}</div>{% endif %}
+</div>
+
+<input type="hidden" name="_csrf" value="{{ _csrf }}">

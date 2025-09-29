@@ -1,0 +1,95 @@
+{% extends "layout.twig" %}
+
+{% block title %}الكاشير:
+	{{ market.name }}
+{% endblock %}
+
+{% block content %}
+	<div class="d-flex justify-content-between align-items-center mb-3">
+		<div>
+			<h1 class="h5 mb-1">مستخدمي المتجر</h1>
+			<div class="text-muted">المتجر:
+				<strong>{{ market.name }}</strong>
+			</div>
+		</div>
+		<div class="d-flex gap-2">
+			<a class="btn btn-secondary" href="{{ url('/markets') }}/{{ market.id }}">رجوع للمتجر</a>
+			<a class="btn btn-primary" href="{{ base }}/create">إضافة كاشير</a>
+		</div>
+	</div>
+
+	<div class="table-responsive">
+		<table class="table table-bordered table-striped align-middle">
+			<thead class="table-dark">
+				<tr>
+					<th>#</th>
+					<th>الاسم</th>
+					<th>username</th>
+					<th>الدور</th>
+					<th>الفروع</th>
+					<th>الحالة</th>
+					<th style="width:240px">تحكم</th>
+				</tr>
+			</thead>
+			<tbody>
+				{% for r in rows %}
+					<tr>
+						<td>{{ r.id }}</td>
+						<td>{{ r.name }}</td>
+						<td>
+							<code>{{ r.username }}</code>
+						</td>
+						<td>
+							<span class="badge bg-secondary">{{ r.role=='owner' ? 'مالك' : 'كاشير' }}</span>
+						</td>
+						<td>
+							{% if r.branch_ids and r.branch_ids|length > 0 %}
+								{% for bid in r.branch_ids %}
+									{% set key = bid ~ '' %}
+									<span class="badge bg-light text-dark border me-1 mb-1">{{ branchMap[key] is defined ? branchMap[key] : ('#' ~ key) }}</span>
+								{% endfor %}
+							{% else %}
+								<span class="text-muted">كل فروع المتجر</span>
+							{% endif %}
+						</td>
+						<td>
+							{% if r.status == 'active' %}
+								<span class="badge bg-success">نشط</span>
+							{% elseif r.status == 'suspended' %}
+								<span class="badge bg-warning text-dark">معلّق</span>
+							{% else %}
+								<span class="badge bg-dark">محذوف</span>
+							{% endif %}
+						</td>
+						<td>
+							<div class="d-flex flex-wrap gap-2">
+								<a class="btn btn-sm btn-outline-primary" href="{{ base }}/{{ r.id }}/edit">تحرير</a>
+
+								<form method="post" action="{{ base }}/{{ r.id }}/status" class="d-inline">
+									<input type="hidden" name="_csrf" value="{{ _csrf }}">
+									{% if r.status == 'active' %}
+										<input type="hidden" name="status" value="suspended">
+										<button class="btn btn-sm btn-outline-warning" type="submit">تعليق</button>
+									{% else %}
+										<input type="hidden" name="status" value="active">
+										<button class="btn btn-sm btn-outline-success" type="submit">تفعيل</button>
+									{% endif %}
+								</form>
+
+								<a class="btn btn-sm btn-outline-danger"
+   href="{{ base }}/{{ r.id }}/delete/confirm">
+  حذف
+</a>
+
+							</div>
+						</td>
+					</tr>
+				{% else %}
+					<tr>
+						<td colspan="7" class="text-center">لا توجد سجلات.</td>
+					</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+	</div>
+{% endblock %}

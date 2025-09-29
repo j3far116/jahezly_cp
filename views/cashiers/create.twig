@@ -1,0 +1,92 @@
+{% extends "layout.twig" %}
+{% block title %}إضافة كاشير: {{ market.name }}{% endblock %}
+
+{% block content %}
+<h1 class="h5 mb-1">إضافة كاشير للمتجر</h1>
+
+	<div class="d-flex justify-content-between align-items-center mb-3">
+		<div>
+			<h1 class="h5 mb-1">إضافة مستخدم للمتجر</h1>
+			<div class="text-muted">المتجر:
+				<strong>{{ market.name }}</strong>
+			</div>
+		</div>
+		<div class="d-flex gap-2">
+			<a class="btn btn-secondary" href="{{ base }}">رجوع للقائمة</a>
+		</div>
+	</div>
+
+	<form method="post" action="{{ base }}">
+		<input type="hidden" name="_csrf" value="{{ _csrf }}">
+
+		<div class="row g-3">
+			<div class="col-md-6">
+				<label class="form-label">الاسم</label>
+				<input type="text" name="name" class="form-control {% if errors.name %}is-invalid{% endif %}" value="{{ values.name }}">
+				{% if errors.name %}
+					<div class="invalid-feedback">{{ errors.name }}</div>
+				{% endif %}
+			</div>
+			<div class="col-md-6">
+				<label class="form-label">username</label>
+				<input type="text" name="username" class="form-control {% if errors.username %}is-invalid{% endif %}"  value="{{ values.username }}" placeholder="مثال: A123 أو cash_01">
+				{% if errors.username %}
+					<div class="invalid-feedback">{{ errors.username }}</div>
+				{% endif %}
+				<div class="form-text">3–20 محرفًا (حروف/أرقام/شرطة سفلية فقط).</div>
+			</div>
+			<div class="col-md-3">
+				<label class="form-label">الدور</label>
+				<select name="role" class="form-select {% if errors.role %}is-invalid{% endif %}">
+					<option value="cashier" {{ values.role=='cashier' ? 'selected' : '' }}>كاشير</option>
+					<option value="owner" {{ values.role=='owner' ? 'selected' : '' }}>مالك</option>
+				</select>
+				{% if errors.role %}
+					<div class="invalid-feedback">{{ errors.role }}</div>
+				{% endif %}
+			</div>
+			<div class="col-md-3">
+				<label class="form-label">الحالة</label>
+				<select name="status" class="form-select {% if errors.status %}is-invalid{% endif %}">
+					<option value="active" {{ values.status=='active' ? 'selected' : '' }}>نشط</option>
+					<option value="suspended" {{ values.status=='suspended' ? 'selected' : '' }}>معلّق</option>
+					<option value="removed" {{ values.status=='removed' ? 'selected' : '' }}>محذوف</option>
+				</select>
+				{% if errors.status %}
+					<div class="invalid-feedback">{{ errors.status }}</div>
+				{% endif %}
+			</div>
+			<div class="col-md-3">
+				<label class="form-label">PIN</label>
+				<input type="password" name="pin" class="form-control {% if errors.pin %}is-invalid{% endif %}" placeholder="4-8 أرقام">
+				{% if errors.pin %}
+					<div class="invalid-feedback">{{ errors.pin }}</div>
+				{% endif %}
+			</div>
+			<div class="col-md-3">
+				<label class="form-label">تأكيد PIN</label>
+				<input type="password" name="confirm_pin" class="form-control {% if errors.confirm_pin %}is-invalid{% endif %}">
+				{% if errors.confirm_pin %}
+					<div class="invalid-feedback">{{ errors.confirm_pin }}</div>
+				{% endif %}
+			</div>
+
+			<div class="col-12">
+				<label class="form-label">الفروع المسموح بها (اختياري)</label>
+				<select name="branch_ids[]" class="form-select" multiple size="6">
+					{% for b in branches %}
+						<option value="{{ b.id }}" {{ b.id in values.branch_ids ? 'selected' : '' }}>{{ b.name }}</option>
+					{% else %}
+						<option value="">لا توجد فروع لهذا المتجر</option>
+					{% endfor %}
+				</select>
+				<div class="form-text">تركها فارغة يعني جميع فروع المتجر.</div>
+			</div>
+		</div>
+
+		<div class="mt-3 d-flex gap-2">
+			<button type="submit" class="btn btn-primary">حفظ</button>
+			<a href="{{ base }}" class="btn btn-outline-secondary">إلغاء</a>
+		</div>
+	</form>
+{% endblock %}

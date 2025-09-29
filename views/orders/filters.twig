@@ -1,0 +1,96 @@
+{# زر صغير لفتح المودال #}
+<button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#ordersFiltersModal">
+  الفلاتر
+</button>
+
+{# المودال #}
+<div class="modal fade" id="ordersFiltersModal" tabindex="-1" aria-labelledby="ordersFiltersLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="ordersFiltersLabel">فلاتر الطلبات</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+      </div>
+
+      <form method="get">
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label">الحالة</label>
+              <select name="status" class="form-select">
+                <option value="">الكل</option>
+                {% for s in allowedStatus %}
+                  <option value="{{ s }}" {{ (filters.status ?? '') == s ? 'selected' : '' }}>{{ s }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label">حالة الدفع</label>
+              <select name="pay_status" class="form-select">
+                <option value="">الكل</option>
+                {% for s in allowedPayStatus %}
+                  <option value="{{ s }}" {{ (filters.pay_status ?? '') == s ? 'selected' : '' }}>{{ s }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label">نوع الدفع</label>
+              <select name="pay_type" class="form-select">
+                <option value="">الكل</option>
+                {% for s in allowedPayType %}
+                  <option value="{{ s }}" {{ (filters.pay_type ?? '') == s ? 'selected' : '' }}>{{ s }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            {% if not scoped_market_id %}
+  <div class="col-md-3">
+    <label class="form-label">Market ID</label>
+    <input class="form-control" type="number" name="market_id" value="{{ filters.market_id ?? '' }}">
+  </div>
+{% else %}
+  {# المستخدم مُقيّد بمتجر محدد — لا نعرض حقل اختيار السوق #}
+{% endif %}
+
+
+            <div class="col-md-3">
+              <label class="form-label">User ID</label>
+              <input class="form-control" type="number" name="user_id" value="{{ filters.user_id ?? '' }}">
+            </div>
+
+            <div class="col-md-3">
+              <label class="form-label">لكل صفحة</label>
+              <input class="form-control" type="number" name="per_page" value="{{ per_page }}">
+            </div>
+
+            <div class="col-md-3">
+              <label class="form-label">فرز حسب</label>
+              <select class="form-select" name="sort">
+                {% set sorts = ['created_at','id','total','status','pay_status','pay_type','market_id','user_id'] %}
+                {% for f in sorts %}
+                  <option value="{{ f }}" {{ (filters.sort ?? '') == f ? 'selected' : '' }}>{{ f }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="col-md-3">
+              <label class="form-label">الاتجاه</label>
+              <select class="form-select" name="dir">
+                <option value="asc"  {{ (filters.dir ?? '') == 'asc'  ? 'selected' : '' }}>تصاعدي</option>
+                <option value="desc" {{ (filters.dir ?? '') == 'desc' ? 'selected' : '' }}>تنازلي</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn btn-outline-secondary" type="button" data-bs-dismiss="modal">إلغاء</button>
+          <a class="btn btn-warning" href="{{ url('/orders') }}">مسح</a>
+          <button class="btn btn-primary" type="submit">تطبيق</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

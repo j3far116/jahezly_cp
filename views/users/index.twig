@@ -1,0 +1,149 @@
+{% extends "layout.twig" %}
+{% block title %}المستخدمون{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h5 mb-0">المستخدمون</h1>
+  <div class="d-flex gap-2">
+    <a href="{{ base }}/create" class="btn btn-primary">إضافة مستخدم</a>
+    <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#filterUsersModal">
+      فلترة
+    </button>
+  </div>
+</div>
+
+{# شارات الفلاتر النشطة + زر مسح #}
+{% set hasFilters = (filters.q or filters.role or filters.status or filters.market_id) %}
+{% if hasFilters %}
+  <div class="mb-3 d-flex flex-wrap align-items-center gap-2">
+    <span class="text-muted">فلاتر مفعلة:</span>
+    {% if filters.q %}<span class="badge bg-light text-dark border">بحث: {{ filters.q }}</span>{% endif %}
+    {% if filters.role %}<span class="badge bg-light text-dark border">الدور: {{ {'admin':'مدير','owner':'مالك','user':'مستخدم','cashier':'كاشير'}[filters.role] }}</span>{% endif %}
+    {% if filters.status %}<span class="badge bg-light text-dark border">الحالة: {{ {'active':'نشط','inactive':'غير نشط','blocked':'محظور','removed':'محذوف'}[filters.status] }}</span>{% endif %}
+    {% if filters.market_id %}
+      {% set mid = filters.market_id ~ '' %}
+      <span class="badge bg-light text-dark border">المتجر: {{ marketMap[mid] is defined ? marketMap[mid] : ('#' ~ mid) }}</span>
+    {% endif %}
+    <a href="{{ base }}" class="btn btn-sm btn-outline-secondary ms-auto">إزالة الفلاتر</a>
+  </div>
+{% endif %}
+
+<div class="table-responsive">
+  <table class="table table-bordered table-striped align-middle">
+    <thead class="table-dark">
+      <tr>
+        <th>#</th>
+        <th>الاسم</th>
+        <th>البريد</th>
+        <th>الجوال</th>
+        <th>الدور</th>
+        <th>الحالة</th>
+        <th>المتجر</th>
+        <th class="text-end">إجراءات</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for u in users %}
+      <tr>
+        <td>{{ u.id }}</td>
+        <td>{{ u.name }}</td>
+        <td>{{ u.email }}</td>
+        <td>{{ u.mobile }}</td>
+        <td>
+          {% set R = {'admin':'مدير','owner':'مالك','user':'مستخدم','cashier':'كاشير'} %}
+          <span class="badge bg-secondary">{{ R[u.role]|default(u.role) }}</span>
+        </td>
+        <td>
+          {% if u.status == 'active' %}
+            <span class="badge bg-success">نشط</span>
+          {% elseif u.status == 'inactive' %}
+            <span class="badge bg-secondary">غير نشط</span>
+          {% elseif u.status == 'blocked' %}
+            <span class="badge bg-danger">محظور</span>
+          {% else %}
+            <span class="badge bg-dark">محذوف</span>
+          {% endif %}
+        </td>
+        <td>{{ u.market_name ?: '—' }}</td>
+        <td class="text-end">
+          <a href="{{ base }}/{{ u.id }}/edit" class="btn btn-sm btn-outline-primary">تعديل</a>
+          <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#confirmDelete{{ u.id }}">حذف</button>
+
+          <div class="modal fade" id="confirmDelete{{ u.id }}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog"><div class="modal-content">
+              <div class="modal-header"><h5 class="modal-title">تأكيد الحذف</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+              </div>
+              <div class="modal-body">هل أنت متأكد من حذف <strong>{{ u.name }}</strong> (#{{ u.id }})؟</div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                <form method="post" action="{{ base }}/{{ u.id }}/delete" class="d-inline">
+                  <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+                  <button type="submit" class="btn btn-danger">تأكيد الحذف</button>
+                </form>
+              </div>
+            </div></div>
+          </div>
+        </td>
+      </tr>
+    {% else %}
+      <tr><td colspan="8" class="text-center">لا يوجد مستخدمون</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{# Modal: فلترة المستخدمين #}
+<div class="modal fade" id="filterUsersModal" tabindex="-1" aria-labelledby="filterUsersModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg"><div class="modal-content">
+    <div class="modal-header">
+      <h5 class="modal-title" id="filterUsersModalLabel">فلترة المستخدمين</h5>
+      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+    </div>
+    <form method="get" action="{{ base }}">
+      <div class="modal-body">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">بحث (الاسم/البريد/الجوال)</label>
+            <input type="text" name="q" class="form-control" value="{{ filters.q }}">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">الدور</label>
+            <select name="role" class="form-select">
+              <option value="">الكل</option>
+              <option value="admin"   {{ filters.role=='admin'   ? 'selected' : '' }}>مدير</option>
+              <option value="owner"   {{ filters.role=='owner'   ? 'selected' : '' }}>مالك</option>
+              <option value="user"    {{ filters.role=='user'    ? 'selected' : '' }}>مستخدم</option>
+              <option value="cashier" {{ filters.role=='cashier' ? 'selected' : '' }}>كاشير</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">الحالة</label>
+            <select name="status" class="form-select">
+              <option value="">الكل</option>
+              <option value="active"   {{ filters.status=='active'   ? 'selected' : '' }}>نشط</option>
+              <option value="inactive" {{ filters.status=='inactive' ? 'selected' : '' }}>غير نشط</option>
+              <option value="blocked"  {{ filters.status=='blocked'  ? 'selected' : '' }}>محظور</option>
+              <option value="removed"  {{ filters.status=='removed'  ? 'selected' : '' }}>محذوف</option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">المتجر</label>
+            {% set mid = filters.market_id ~ '' %}
+            <select name="market_id" class="form-select">
+              <option value="">الكل</option>
+              {% for m in markets %}
+                <option value="{{ m.id }}" {{ (m.id ~ '') == mid ? 'selected' : '' }}>{{ m.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <a href="{{ base }}" class="btn btn-outline-secondary">مسح</a>
+        <button type="submit" class="btn btn-primary">تطبيق الفلاتر</button>
+      </div>
+    </form>
+  </div></div>
+</div>
+{% endblock %}

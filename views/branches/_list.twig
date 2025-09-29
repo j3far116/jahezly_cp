@@ -1,0 +1,58 @@
+{# required: market, branches, branches_base, scoped_market_id #}
+{# optional: focus_branch_id (int), show_title=true, show_add_button=true #}
+
+<div class="d-flex justify-content-between align-items-center mb-2">
+  {% if show_title|default(true) %}
+    <h2 class="h5 mb-0">الفروع</h2>
+  {% else %}
+    <span class="visually-hidden">الفروع</span>
+  {% endif %}
+
+  {# {% if (scoped_market_id is null or scoped_market_id == market.id) and show_add_button|default(true) %} #}
+  {% if auth.role == 'admin' %}
+    <a href="{{ branches_base }}/create" class="btn btn-primary btn-sm">إضافة فرع</a>
+  {% endif %}
+</div>
+
+{% if branches is empty %}
+  <div class="alert alert-info">لا توجد فروع لهذا المتجر.</div>
+{% else %}
+  <div class="table-responsive">
+    <table class="table align-middle">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>الفرع</th>
+          <th>النوع</th>
+          <th>الموقع</th>
+          <th>الحالة</th>
+          <th>العنوان</th>
+          <th class="text-end">إجراءات</th>
+        </tr>
+      </thead>
+<tbody>
+  {% for b in branches %}
+  {% set typeLabel = b.type == 1 ? 'المطاعم' : (b.type == 2 ? 'الكافيهات' : b.type) %}
+  <tr class="{{ (focus_branch_id is defined and focus_branch_id == b.id) ? 'table-warning' : '' }}">
+    <td>{{ b.id }}</td>
+    <td>{{ b.name }}</td>
+    <td>{{ typeLabel }}</td>
+    <td>{{ b.location_name ?: '—' }}</td>
+    <td>
+      <span class="badge {{ b.status == 'active' ? 'bg-success' : 'bg-secondary' }}">
+        {{ b.status == 'active' ? 'نشط' : 'غير نشط' }}
+      </span>
+    </td>
+    <td>{{ b.address ?: '—' }}</td>
+    <td class="text-end">
+      <a href="{{ branches_base }}/{{ b.id }}" class="btn btn-sm btn-outline-primary">عرض</a>
+      {% if (scoped_market_id is null) or (scoped_market_id == market.id) %}
+        <a href="{{ branches_base }}/{{ b.id }}/edit" class="btn btn-sm btn-outline-secondary">تعديل</a>
+      {% endif %}
+    </td>
+  </tr>
+  {% endfor %}
+</tbody>
+    </table>
+  </div>
+{% endif %}

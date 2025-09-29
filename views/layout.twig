@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+	<head>
+		<meta charset="UTF-8"/>
+		<meta name="viewport" content="width=device-width, initial-scale=1"/>
+		<meta name="csrf-token" content="{{ csrf_token() }}">
+		<title>
+			{% block title %}لوحة الإدارة
+			{% endblock %}
+		</title>
+
+		{# اختر واحداً فقط: RTL أو العادي #}
+		<link rel="stylesheet" href="{{ url('/assets/bootstrap/bootstrap.rtl.min.css') }}">
+		<link
+		rel="stylesheet" href="{{ url('/assets/style.css') }}">
+	{# <link rel="stylesheet" href="{{ url('/assets/bootstrap/bootstrap.min.css') }}"> #}
+	</head>
+
+	<body class="bg-light">
+		{# NAVBAR ثابت #}
+
+		{# هل المستخدم مسجّل؟ #}
+		{% set has_nav = session.user is defined and session.user %}
+
+			{% if has_nav %}
+				<nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top"> <div
+					class="container-fluid">
+
+					{# رابط "الرئيسية" حسب الدور (مالك → متجره | مدير → الداشبورد) #}
+					{% set ownerMid  = (scoped_market_id is defined and scoped_market_id is not null) ? scoped_market_id : (session.user.market_id ?? null) %}
+					{% set home_href = ownerMid is not null ? url('/markets/' ~ ownerMid) : url('/dashboard') %}
+
+					<a class="navbar-brand" href="{{ home_href }}">{{ site_name ?? 'لوحة الإدارة' }}</a>
+
+					<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="تبديل القائمة">
+						<span class="navbar-toggler-icon"></span>
+					</button>
+
+					<div class="collapse navbar-collapse justify-content-between" id="mainNav">
+						<ul class="navbar-nav mb-2 mb-lg-0">
+							<li class="nav-item">
+								<a class="nav-link" href="{{ home_href }}">الرئيسية</a>
+							</li>
+
+							{% if session.user and session.user.role == 'admin' %}
+								<li class="nav-item">
+									<a class="nav-link" href="{{ url('/users') }}">المستخدمون</a>
+								</li>
+								<li class="nav-item">
+									<a class="nav-link" href="{{ url('/markets') }}">المتاجر</a>
+								</li>
+							{% endif %}
+
+							<li class="nav-item">
+								<a class="nav-link" href="{{ url('/orders') }}">الطلبات</a>
+							</li>
+
+							<li class="nav-item dropdown">
+								<a class="nav-link dropdown-toggle" href="#" id="navDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">القائمة</a>
+								<ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navDropdown">
+									{% if session.user.role in ['admin'] %}
+										<li>
+											<a class="dropdown-item" href="{{ url('/users') }}">عرض المستخدمين</a>
+										</li>
+										<li>
+											<a class="dropdown-item" href="{{ url('/markets') }}">عرض المتاجر</a>
+										</li>
+
+									{% endif %}
+									<li>
+										<a class="dropdown-item" href="{{ url('/orders') }}">عرض الطلبات</a>
+									</li>
+									<hr>
+									{% if session.user.role in ['admin'] %}
+
+										<li>
+											<a class="dropdown-item" href="{{ url('/cashiers') }}">عرض الكاشيرات</a>
+										</li>
+									{% endif %}
+
+								</ul>
+							</li>
+						</ul>
+
+						{# ← تم حذف كتلة "المسار" بالكامل هنا #}
+
+						<ul class="navbar-nav mb-2 mb-lg-0">
+							<li class="nav-item">
+								<span class="nav-link disabled">مرحبًا
+									{{ session.user.name ?? 'مستخدم' }}</span>
+							</li>
+
+							{% set _u = session.user ?? {} %}
+							{% if _u.role not in ['admin'] and _u.market_id is not null %}
+								<li class="nav-item">
+									<span class="nav-link">المتجر:
+										<span class="badge bg-info text-dark">{{ _u.market_id }}</span>
+									</span>
+								</li>
+							{% endif %}
+
+							<li class="nav-item">
+								<form method="post" action="{{ url('/logout') }}" class="d-inline">
+									{{ csrf_field()|raw }}
+									<button class="btn btn-sm btn-outline-light" type="submit">خروج</button>
+								</form>
+							</li>
+						</ul>
+					</div>
+				</div>
+			</nav>
+
+			<div style="height:72px"></div>
+		{% endif %}
+
+		{# Bootstrap Toast container: سنستخدمه من toast.js #}
+		<div id="toast-root" class="position-fixed top-0 start-0 p-3" style="z-index: 1080;"></div>
+
+		{# عناصر فلاش مخفية يقرؤها toast.js ويحوّلها لتوست Bootstrap #}
+		{% set _succ = flash('success') %}
+		{% if _succ %}
+			<div data-toast data-type="success" data-msg="{{ _succ|e('html_attr') }}"></div>
+		{% endif %}
+		{% set _err  = flash('error')   %}
+		{% if _err  %}
+			<div data-toast data-type="error" data-msg="{{ _err|e('html_attr') }}"></div>
+		{% endif %}
+		{% set _info = flash('info')    %}
+		{% if _info %}
+			<div data-toast data-type="info" data-msg="{{ _info|e('html_attr') }}"></div>
+		{% endif %}
+		{% set _warn = flash('warning') %}
+		{% if _warn %}
+			<div data-toast data-type="warning" data-msg="{{ _warn|e('html_attr') }}"></div>
+		{% endif %}
+
+		<div class="container my-4">
+			<div class="card shadow-sm">
+				<div class="card-body"> {% block content %}{% endblock %}
+					</div>
+				</div>
+			</div>
+
+			 <script src="{{ url('/assets/bootstrap/bootstrap.bundle.min.js') }}"></script>
+		 <script src="{{ url('/assets/toast.js') }}"></script>
+			 <script src="{{ url('/assets/app.js') }}"></script>
+		</body>
+	</html>

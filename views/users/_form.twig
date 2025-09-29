@@ -1,0 +1,67 @@
+<div class="row g-3">
+  <div class="col-md-6">
+    <label class="form-label">الاسم</label>
+    <input name="name" type="text" class="form-control {% if errors.name %}is-invalid{% endif %}" value="{{ values.name }}" maxlength="100" required>
+    {% if errors.name %}<div class="invalid-feedback">{{ errors.name }}</div>{% endif %}
+  </div>
+
+  <div class="col-md-6">
+    <label class="form-label">البريد</label>
+    <input name="email" type="email" class="form-control {% if errors.email %}is-invalid{% endif %}" value="{{ values.email }}" maxlength="100" required>
+    {% if errors.email %}<div class="invalid-feedback">{{ errors.email }}</div>{% endif %}
+  </div>
+
+  <div class="col-md-6">
+    <label class="form-label">الجوال</label>
+    <input name="mobile" type="text" class="form-control {% if errors.mobile %}is-invalid{% endif %}" value="{{ values.mobile }}" maxlength="20" required>
+    {% if errors.mobile %}<div class="invalid-feedback">{{ errors.mobile }}</div>{% endif %}
+  </div>
+
+  <div class="col-md-3">
+    <label class="form-label">الدور</label>
+    <select name="role" class="form-select {% if errors.role %}is-invalid{% endif %}">
+      <option value="admin"  {{ values.role=='admin'  ? 'selected' : '' }}>مدير</option>
+      <option value="owner"  {{ values.role=='owner'  ? 'selected' : '' }}>مالك</option>
+      <option value="user"   {{ values.role=='user'   ? 'selected' : '' }}>مستخدم</option>
+      <option value="cashier"{{ values.role=='cashier'? 'selected' : '' }}>كاشير</option>
+    </select>
+    {% if errors.role %}<div class="invalid-feedback">{{ errors.role }}</div>{% endif %}
+  </div>
+
+  <div class="col-md-3">
+    <label class="form-label">الحالة</label>
+    <select name="status" class="form-select {% if errors.status %}is-invalid{% endif %}">
+      <option value="active"   {{ values.status=='active'   ? 'selected' : '' }}>نشط</option>
+      <option value="inactive" {{ values.status=='inactive' ? 'selected' : '' }}>غير نشط</option>
+      <option value="blocked"  {{ values.status=='blocked'  ? 'selected' : '' }}>محظور</option>
+      <option value="removed"  {{ values.status=='removed'  ? 'selected' : '' }}>محذوف</option>
+    </select>
+    {% if errors.status %}<div class="invalid-feedback">{{ errors.status }}</div>{% endif %}
+  </div>
+
+  <div class="col-md-6">
+  <label class="form-label">المتجر</label>
+  <select name="market_id" class="form-select">
+    <option value="">— بدون متجر —</option>
+    {% for m in markets %}
+      <option value="{{ m.id }}" {{ values.market_id == m.id ? 'selected' : '' }}>
+        {{ m.name }}
+      </option>
+    {% endfor %}
+  </select>
+</div>
+
+  <div class="col-md-4">
+    <label class="form-label">كلمة المرور {{ values.id ? '(اتركها فارغة إن لم ترغب بالتغيير)' : '' }}</label>
+    <input name="password" type="password" class="form-control {% if errors.password %}is-invalid{% endif %}">
+    {% if errors.password %}<div class="invalid-feedback">{{ errors.password }}</div>{% endif %}
+  </div>
+
+  <div class="col-md-4">
+    <label class="form-label">تأكيد كلمة المرور</label>
+    <input name="confirm" type="password" class="form-control {% if errors.confirm %}is-invalid{% endif %}">
+    {% if errors.confirm %}<div class="invalid-feedback">{{ errors.confirm }}</div>{% endif %}
+  </div>
+</div>
+
+<input type="hidden" name="_csrf" value="{{ _csrf }}">
