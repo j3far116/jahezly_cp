@@ -1,55 +1,64 @@
 {% extends "layout.twig" %}
-{% block title %}فرع: {{ branch.name }}{% endblock %}
+{% block title %}فرع:
+	{{ branch.name }}
+{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <div>
-    <h1 class="h4 mb-1">تفاصيل الفرع</h1>
-    <div class="text-muted">المتجر:
-      <a class="text-decoration-none" href="{{ markets_base }}/{{ market.id }}"><strong>{{ market.name }}</strong></a>
-    </div>
-  </div>
-  <div class="d-flex gap-2">
-    <a class="btn btn-secondary" href="{{ markets_base }}/{{ market.id }}">رجوع للمتجر</a>
-    {% if (scoped_market_id is null) or (scoped_market_id == market.id) %}
-      <a class="btn btn-primary" href="{{ branches_base }}/{{ branch.id }}/edit">تعديل</a>
-      <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#confirmDeleteBranch">حذف</button>
-    {% endif %}
-  </div>
-</div>
+	<div class="d-flex justify-content-between align-items-center mb-3">
+		<div>
+			<h1 class="h4 mb-1">تفاصيل الفرع</h1>
+			<div class="text-muted">المتجر:
+				<a class="text-decoration-none" href="{{ markets_base }}/{{ market.id }}">
+					<strong>{{ market.name }}</strong>
+				</a>
+			</div>
+		</div>
+		<div class="d-flex gap-2">
+			<a class="btn btn-secondary" href="{{ markets_base }}/{{ market.id }}">رجوع للمتجر</a>
+			{% if auth.role == 'admin' %}
+				<a class="btn btn-primary" href="{{ branches_base }}/{{ branch.id }}/edit">تعديل</a>
+				{# <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#confirmDeleteBranch">حذف</button> #}
+			{% endif %}
+		</div>
+	</div>
 
-{% set typeLabel = branch.type == 1 ? 'المطاعم' : (branch.type == 2 ? 'الكافيهات' : branch.type) %}
 
-<div class="card">
-  <div class="card-body">
-    <dl class="row mb-0">
-      <dt class="col-sm-3">المعرف</dt><dd class="col-sm-9">{{ branch.id }}</dd>
-      <dt class="col-sm-3">الاسم</dt><dd class="col-sm-9">{{ branch.name }}</dd>
-      <dt class="col-sm-3">النوع</dt><dd class="col-sm-9">{{ typeLabel }}</dd>
-      <dt class="col-sm-3">الموقع</dt><dd class="col-sm-9">{{ branch.location_name ?: '—' }}</dd>
-      <dt class="col-sm-3">الحالة</dt>
-      <dd class="col-sm-9"><span class="badge {{ branch.status == 'active' ? 'bg-success' : 'bg-secondary' }}">{{ branch.status == 'active' ? 'نشط' : 'غير نشط' }}</span></dd>
-      <dt class="col-sm-3">العنوان</dt><dd class="col-sm-9">{{ branch.address ?: '—' }}</dd>
-      <dt class="col-sm-3">أُنشئ في</dt><dd class="col-sm-9">{{ branch.created_at }}</dd>
-    </dl>
-  </div>
-</div>
+	<div class="card">
+		<div class="card-body">
+			<dl class="row mb-0">
+				<dt class="col-sm-3">المعرف</dt>
+				<dd class="col-sm-9">{{ branch.id }}</dd>
+				<dt class="col-sm-3">الاسم</dt>
+				<dd class="col-sm-9">{{ branch.name }}</dd>
+				<dt class="col-sm-3">الموقع</dt>
+				<dd class="col-sm-9">{{ branch.location_name ?: '—' }}</dd>
+				<dt class="col-sm-3">الحالة</dt>
+				<dd class="col-sm-9">
+					<span class="badge {{ branch.status == 'active' ? 'bg-success' : 'bg-secondary' }}">{{ branch.status == 'active' ? 'نشط' : 'غير نشط' }}</span>
+				</dd>
+				<dt class="col-sm-3">العنوان</dt>
+				<dd class="col-sm-9">{{ branch.address ?: '—' }}</dd>
+				<dt class="col-sm-3">أُنشئ في</dt>
+				<dd class="col-sm-9">{{ branch.created_at }}</dd>
+			</dl>
+		</div>
+	</div>
 
-{% if (scoped_market_id is null) or (scoped_market_id == market.id) %}
-<div class="modal fade" id="confirmDeleteBranch" tabindex="-1" aria-labelledby="confirmDeleteBranchLabel" aria-hidden="true">
-  <div class="modal-dialog"><div class="modal-content">
-    <div class="modal-header"><h5 class="modal-title" id="confirmDeleteBranchLabel">تأكيد الحذف</h5>
-      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
-    </div>
-    <div class="modal-body">هل أنت متأكد من حذف الفرع <strong>{{ branch.name }}</strong> (#{{ branch.id }})؟</div>
-    <div class="modal-footer">
-      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
-      <form method="post" action="{{ branches_base }}/{{ branch.id }}/delete" class="d-inline">
-        <input type="hidden" name="_csrf" value="{{ _csrf }}">
-        <button type="submit" class="btn btn-danger">تأكيد الحذف</button>
-      </form>
-    </div>
-  </div></div>
-</div>
-{% endif %}
+	{# {% if (scoped_market_id is null) or (scoped_market_id == market.id) %}
+	<div class="modal fade" id="confirmDeleteBranch" tabindex="-1" aria-labelledby="confirmDeleteBranchLabel" aria-hidden="true">
+	  <div class="modal-dialog"><div class="modal-content">
+	    <div class="modal-header"><h5 class="modal-title" id="confirmDeleteBranchLabel">تأكيد الحذف</h5>
+	      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+	    </div>
+	    <div class="modal-body">هل أنت متأكد من حذف الفرع <strong>{{ branch.name }}</strong> (#{{ branch.id }})؟</div>
+	    <div class="modal-footer">
+	      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+	      <form method="post" action="{{ branches_base }}/{{ branch.id }}/delete" class="d-inline">
+	        <input type="hidden" name="_csrf" value="{{ _csrf }}">
+	        <button type="submit" class="btn btn-danger">تأكيد الحذف</button>
+	      </form>
+	    </div>
+	  </div></div>
+	</div>
+	{% endif %} #}
 {% endblock %}

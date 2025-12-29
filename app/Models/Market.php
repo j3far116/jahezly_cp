@@ -11,15 +11,23 @@ final class Market
     public static function all(): array
     {
         $pdo = DB::pdo();
-        $st  = $pdo->query("SELECT id, name, `desc`, cover, logo, status, created_at FROM markets ORDER BY id DESC");
+        $st  = $pdo->query(
+            "SELECT id, name, `desc`, cover, logo, status, type, created_at
+             FROM markets
+             ORDER BY id DESC"
+        );
         return $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
     }
 
     public static function findById(int $id): ?array
     {
         $pdo = DB::pdo();
-        $st  = $pdo->prepare("SELECT id, name, `desc`, cover, logo, status, created_at FROM markets WHERE id = :id LIMIT 1");
-        $st->execute(['id'=>$id]);
+        $st  = $pdo->prepare(
+            "SELECT id, name, `desc`, cover, logo, status, type, created_at
+             FROM markets
+             WHERE id = :id LIMIT 1"
+        );
+        $st->execute(['id' => $id]);
         $row = $st->fetch(PDO::FETCH_ASSOC);
         return $row ?: null;
     }
@@ -35,8 +43,8 @@ final class Market
     {
         $pdo = DB::pdo();
         $st  = $pdo->prepare(
-            "INSERT INTO markets (name, `desc`, cover, logo, status)
-             VALUES (:name, :desc, :cover, :logo, :status)"
+            "INSERT INTO markets (name, `desc`, cover, logo, status, type)
+             VALUES (:name, :desc, :cover, :logo, :status, :type)"
         );
         $st->execute([
             'name'   => $v['name'],
@@ -44,6 +52,7 @@ final class Market
             'cover'  => ($v['cover'] !== '' ? $v['cover'] : null),
             'logo'   => ($v['logo']  !== '' ? $v['logo']  : null),
             'status' => $v['status'],
+            'type'   => (int)$v['type'],
         ]);
         return (int)$pdo->lastInsertId();
     }
@@ -57,7 +66,8 @@ final class Market
                  `desc` = :desc,
                  cover = :cover,
                  logo  = :logo,
-                 status = :status
+                 status = :status,
+                 type = :type
              WHERE id = :id"
         );
         $st->execute([
@@ -67,6 +77,7 @@ final class Market
             'cover'  => ($v['cover'] !== '' ? $v['cover'] : null),
             'logo'   => ($v['logo']  !== '' ? $v['logo']  : null),
             'status' => $v['status'],
+            'type'   => (int)$v['type'],
         ]);
     }
 
@@ -74,20 +85,20 @@ final class Market
     {
         $pdo = DB::pdo();
         $st  = $pdo->prepare("DELETE FROM markets WHERE id = :id");
-        $st->execute(['id'=>$id]);
+        $st->execute(['id' => $id]);
     }
 
     public static function updateCover(int $id, string $filename): void
     {
         $pdo = DB::pdo();
         $st  = $pdo->prepare("UPDATE markets SET cover = :c WHERE id = :id");
-        $st->execute(['c'=>$filename,'id'=>$id]);
+        $st->execute(['c' => $filename, 'id' => $id]);
     }
 
     public static function updateLogo(int $id, string $filename): void
     {
         $pdo = DB::pdo();
         $st  = $pdo->prepare("UPDATE markets SET logo = :l WHERE id = :id");
-        $st->execute(['l'=>$filename,'id'=>$id]);
+        $st->execute(['l' => $filename, 'id' => $id]);
     }
 }

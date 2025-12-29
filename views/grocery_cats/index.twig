@@ -1,0 +1,52 @@
+{% extends "layout.twig" %}
+
+{% block title %}تصنيفات السوبرماركت{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h4 mb-0">تصنيفات السوبرماركت</h1>
+
+    <div class="d-flex gap-2">
+        <a href="{{ base }}/create" class="btn btn-primary">+ إضافة تصنيف</a>
+        <a href="/admincp/grocery/stock" class="btn btn-outline-secondary">رجوع للمستودع</a>
+    </div>
+</div>
+
+{% if success %}
+    <div class="alert alert-success">{{ success }}</div>
+{% endif %}
+
+<table class="table table-bordered align-middle">
+    <thead class="table-light">
+        <tr>
+            <th>#</th>
+            <th>التصنيف</th>
+            <th>القروب</th>
+            <th>الحالة</th>
+            <th style="width:160px;">إجراءات</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for c in cats %}
+        <tr>
+            <td>{{ c.id }}</td>
+            <td>{{ c.name }}</td>
+            <td>{{ c.group_name }}</td>
+            <td>
+                <span class="badge {{ c.status == 'active' ? 'bg-success' : 'bg-secondary' }}">
+                    {{ c.status == 'active' ? 'نشط' : 'غير نشط' }}
+                </span>
+            </td>
+            <td>
+                <a href="{{ base }}/{{ c.id }}/edit" class="btn btn-sm btn-outline-primary">تعديل</a>
+                <a href="{{ base }}/{{ c.id }}/delete"
+                   onclick="return confirm('تأكيد الحذف؟');"
+                   class="btn btn-sm btn-outline-danger">حذف</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}

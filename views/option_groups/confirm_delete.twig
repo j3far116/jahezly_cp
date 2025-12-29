@@ -1,0 +1,25 @@
+{% extends "layout.twig" %}
+{% block title %}تأكيد حذف المجموعة — {{ product.name }}{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm p-4">
+  <h1 class="h4 mb-3 text-danger">تأكيد حذف مجموعة الخيارات</h1>
+  <p>هل أنت متأكد من رغبتك في حذف هذه المجموعة؟ لا يمكن التراجع عن العملية.</p>
+
+  <ul class="list-group mb-3">
+    <li class="list-group-item"><strong>الاسم:</strong> {{ row.name }}</li>
+    <li class="list-group-item"><strong>النوع:</strong> {{ row.type == 'multi' ? 'اختيار متعدد' : 'اختيار مفرد' }}</li>
+    <li class="list-group-item"><strong>إجباري:</strong> {{ row.required ? 'نعم' : 'لا' }}</li>
+  </ul>
+
+<form method="post" action="{{ base }}/{{ group.id }}/delete">
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+    <div class="d-flex gap-2">
+      <button type="submit" class="btn btn-danger">
+        <i class="bi bi-trash"></i> تأكيد الحذف
+      </button>
+      <a href="{{ base }}" class="btn btn-secondary">إلغاء</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

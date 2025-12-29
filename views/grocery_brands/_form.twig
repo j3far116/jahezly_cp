@@ -1,0 +1,30 @@
+{{ csrf_field()|raw }}
+
+{% set v_name   = old.name   ?? (row.name   ?? '') %}
+{% set v_status = old.status ?? (row.status ?? 'active') %}
+
+<div class="row g-3">
+    <div class="col-md-6">
+        <label class="form-label">اسم العلامة التجارية</label>
+        <input type="text" name="name" class="form-control"
+               value="{{ v_name }}" required maxlength="255">
+    </div>
+
+    <div class="col-md-3">
+        <label class="form-label">الحالة</label>
+        <select name="status" class="form-select">
+            <option value="active"   {{ v_status == 'active' ? 'selected' : '' }}>نشطة</option>
+            <option value="inactive" {{ v_status == 'inactive' ? 'selected' : '' }}>غير نشطة</option>
+        </select>
+    </div>
+
+    <div class="col-md-3">
+        <label class="form-label">شعار (اختياري)</label>
+        <input type="file" name="logo" class="form-control">
+        {% if row is defined and row.logo %}
+            <div class="mt-2">
+                <img src="/uploads/grocery_brands/{{ row.logo }}" style="height:50px;" class="border rounded">
+            </div>
+        {% endif %}
+    </div>
+</div>

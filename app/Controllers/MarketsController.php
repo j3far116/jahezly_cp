@@ -31,186 +31,207 @@ final class MarketsController
         ]);
     }
 
-    public function show(int $id): void
-    {
-        Gate::allow(['admin','owner']);
+public function show(int $id): void
+{
+    Gate::allow(['admin','owner']);
 
-        $bp   = rtrim($_ENV['BASE_PATH'] ?? '/admincp', '/');
-        $base = $bp . '/markets';
+    $bp   = rtrim($_ENV['BASE_PATH'] ?? '/admincp', '/');
+    $base = $bp . '/markets';
 
-        $scopedMarketId = Scope::marketIdForCurrentUser();
-        if ($scopedMarketId !== null && $scopedMarketId !== (int)$id) {
-            Session::flash('error', 'غير مصرح لك بعرض هذا المتجر.');
-            header("Location: {$base}");
-            return;
-        }
-
-        $market = Market::findById((int)$id);
-        if (!$market) {
-            Session::flash('error', 'المتجر غير موجود.');
-            header("Location: {$base}");
-            return;
-        }
-
-        $branches = Branch::listByMarketWithLocation((int)$id);
-
-        // أساس الفروع بنمط singular
-        $branchesBase = $base . '/' . $id . '/branch';
-
-        TwigService::refreshGlobals();
-        echo TwigService::view()->render('markets/show.twig', [
-            'market'           => $market,
-            'branches'         => $branches,
-            'base'             => $base,
-            'branches_base'    => $branchesBase, // << الاستخدام الوحيد للفروع في القوالب
-            'scoped_market_id' => $scopedMarketId,
-            '_csrf'            => Csrf::token(),
-        ]);
+    $scopedMarketId = Scope::marketIdForCurrentUser();
+    if ($scopedMarketId !== null && $scopedMarketId !== (int)$id) {
+        Session::flash('error', 'غير مصرح لك بعرض هذا المتجر.');
+        header("Location: {$base}");
+        return;
     }
 
-    public function create(): void
-    {
-        Gate::allow(['admin']);
+    $market = Market::findById((int)$id);
+    if (!$market) {
+        Session::flash('error', 'المتجر غير موجود.');
+        header("Location: {$base}");
+        return;
+    }
 
-        $bp   = rtrim($_ENV['BASE_PATH'] ?? '/admincp', '/');
-        $base = $bp . '/markets';
+    $branches = Branch::listByMarketWithLocation((int)$id);
+    $branchesBase = $base . '/' . $id . '/branch';
 
+    // 📌 عرض صفحة المتجر العادية دائمًا
+    TwigService::refreshGlobals();
+    echo TwigService::view()->render('markets/show.twig', [
+        'market'           => $market,
+        'branches'         => $branches,
+        'base'             => $base,
+        'branches_base'    => $branchesBase,
+        'scoped_market_id' => $scopedMarketId,
+        '_csrf'            => Csrf::token(),
+    ]);
+}
+
+
+
+public function create(): void
+{
+    Gate::allow(['admin']);
+
+    $bp   = rtrim($_ENV['BASE_PATH'] ?? '/admincp', '/');
+    $base = $bp . '/markets';
+
+    TwigService::refreshGlobals();
+    echo TwigService::view()->render('markets/create.twig', [
+        'base'   => $base,
+        'values' => [
+            'name'   => '',
+            'desc'   => '',
+            'cover'  => '',
+            'logo'   => '',
+            'status' => 'inactive',
+            'type'   => 1, // النوع الافتراضي
+        ],
+        'errors' => [],
+        '_csrf'  => Csrf::token(),
+    ]);
+}
+
+
+public function store(): void
+{
+    Gate::allow(['admin']);
+
+    $bp   = rtrim($_ENV['BASE_PATH'] ?? '/admincp', '/');
+    $base = $bp . '/markets';
+
+    if (!Csrf::check($_POST['_csrf'] ?? null)) {
+        Session::flash('error','طلب غير صالح.');
+        header("Location: {$base}/create");
+        return;
+    }
+
+    $values = [
+        'name'   => trim($_POST['name'] ?? ''),
+        'desc'   => trim($_POST['desc'] ?? ''),
+        'status' => $_POST['status'] ?? 'inactive',
+        'type'   => (int)($_POST['type'] ?? 1),
+        'cover'  => null,
+        'logo'   => null,
+    ];
+
+    $errors = $this->validate($values);
+
+    if ($errors) {
         TwigService::refreshGlobals();
         echo TwigService::view()->render('markets/create.twig', [
             'base'   => $base,
-            'values' => ['name'=>'','desc'=>'','cover'=>'','logo'=>'','status'=>'inactive'],
-            'errors' => [],
+            'values' => $values,
+            'errors' => $errors,
             '_csrf'  => Csrf::token(),
         ]);
+        return;
     }
 
-    public function store(): void
-    {
-        Gate::allow(['admin']);
+    $id = Market::create($values);
 
-        $bp   = rtrim($_ENV['BASE_PATH'] ?? '/admincp', '/');
-        $base = $bp . '/markets';
+    Session::flash('success','تم إنشاء المتجر بنجاح.');
+    header("Location: {$base}/{$id}");
+}
 
-        if (!Csrf::check($_POST['_csrf'] ?? null)) {
-            Session::flash('error','طلب غير صالح.');
-            header("Location: {$base}/create");
-            return;
-        }
 
-        $values = [
-            'name'   => trim((string)($_POST['name'] ?? '')),
-            'desc'   => trim((string)($_POST['desc'] ?? '')),
-            'cover'  => trim((string)($_POST['cover'] ?? '')),
-            'logo'   => trim((string)($_POST['logo'] ?? '')),
-            'status' => (string)($_POST['status'] ?? 'inactive'),
-        ];
-        $errors = $this->validate($values);
+public function edit(int $id): void
+{
+    Gate::allow(['admin','owner']);
 
-        if ($errors) {
-            TwigService::refreshGlobals();
-            echo TwigService::view()->render('markets/create.twig', [
-                'base'   => $base,
-                'values' => $values,
-                'errors' => $errors,
-                '_csrf'  => Csrf::token(),
-            ]);
-            return;
-        }
+    $bp   = rtrim($_ENV['BASE_PATH'] ?? '/admincp', '/');
+    $base = $bp . '/markets';
 
-        $id = Market::create($values);
-        Session::flash('success','تم إنشاء المتجر بنجاح.');
-        header("Location: {$base}/{$id}");
+    $markt = Market::findById($id);
+    if (!$markt) {
+        Session::flash('error','المتجر غير موجود.');
+        header("Location: {$base}");
+        return;
     }
 
-    public function edit(int $id): void
-    {
-        Gate::allow(['admin','owner']);
+    // صلاحيات النطاق
+    $scopedMarketId = Scope::marketIdForCurrentUser();
+    if ($scopedMarketId !== null && $scopedMarketId !== $id) {
+        Session::flash('error','غير مصرح لك بتعديل هذا المتجر.');
+        header("Location: {$base}");
+        return;
+    }
 
-        $bp   = rtrim($_ENV['BASE_PATH'] ?? '/admincp', '/');
-        $base = $bp . '/markets';
+    TwigService::refreshGlobals();
+    echo TwigService::view()->render('markets/edit.twig', [
+        'base'   => $base,
+        'id'     => $id,
+        'values' => [
+            'name'   => $markt['name'],
+            'desc'   => $markt['desc'],
+            'cover'  => $markt['cover'],
+            'logo'   => $markt['logo'],
+            'status' => $markt['status'],
+            'type'   => $markt['type'], // ← مهم جدًا
+        ],
+        'errors' => [],
+        '_csrf'  => Csrf::token(),
+    ]);
+}
 
-        $markt = Market::findById((int)$id);
-        if (!$markt) {
-            Session::flash('error','المتجر غير موجود.');
-            header("Location: {$base}");
-            return;
-        }
 
-        $scopedMarketId = Scope::marketIdForCurrentUser();
-        if ($scopedMarketId !== null && $scopedMarketId !== (int)$id) {
-            Session::flash('error','غير مصرح لك بتعديل هذا المتجر.');
-            header("Location: {$base}");
-            return;
-        }
+public function update(int $id): void
+{
+    Gate::allow(['admin','owner']);
 
+    $bp   = rtrim($_ENV['BASE_PATH'] ?? '/admincp', '/');
+    $base = $bp . '/markets';
+
+    if (!Csrf::check($_POST['_csrf'] ?? null)) {
+        Session::flash('error','طلب غير صالح.');
+        header("Location: {$base}/{$id}/edit");
+        return;
+    }
+
+    $markt = Market::findById($id);
+    if (!$markt) {
+        Session::flash('error','المتجر غير موجود.');
+        header("Location: {$base}");
+        return;
+    }
+
+    // صلاحيات النطاق
+    $scopedMarketId = Scope::marketIdForCurrentUser();
+    if ($scopedMarketId !== null && $scopedMarketId !== $id) {
+        Session::flash('error','غير مصرح لك بتعديل هذا المتجر.');
+        header("Location: {$base}");
+        return;
+    }
+
+    $values = [
+        'name'   => trim($_POST['name'] ?? ''),
+        'desc'   => trim($_POST['desc'] ?? ''),
+        'status' => $_POST['status'] ?? 'inactive',
+        'type'   => (int)($_POST['type'] ?? $markt['type']), // ← إضافة مهمة جدًا
+        'cover'  => $markt['cover'],
+        'logo'   => $markt['logo'],
+    ];
+
+    $errors = $this->validate($values);
+
+    if ($errors) {
         TwigService::refreshGlobals();
         echo TwigService::view()->render('markets/edit.twig', [
             'base'   => $base,
-            'id'     => (int)$id,
-            'values' => [
-                'name'   => $markt['name'] ?? '',
-                'desc'   => $markt['desc'] ?? '',
-                'cover'  => $markt['cover'] ?? '',
-                'logo'   => $markt['logo'] ?? '',
-                'status' => $markt['status'] ?? 'inactive',
-            ],
-            'errors' => [],
+            'id'     => $id,
+            'values' => $values,
+            'errors' => $errors,
             '_csrf'  => Csrf::token(),
         ]);
+        return;
     }
 
-    public function update(int $id): void
-    {
-        Gate::allow(['admin','owner']);
+    Market::updateById($id, $values);
 
-        $bp   = rtrim($_ENV['BASE_PATH'] ?? '/admincp', '/');
-        $base = $bp . '/markets';
+    Session::flash('success','تم تحديث بيانات المتجر.');
+    header("Location: {$base}/{$id}");
+}
 
-        if (!Csrf::check($_POST['_csrf'] ?? null)) {
-            Session::flash('error','طلب غير صالح.');
-            header("Location: {$base}/{$id}/edit");
-            return;
-        }
-
-        $markt = Market::findById((int)$id);
-        if (!$markt) {
-            Session::flash('error','المتجر غير موجود.');
-            header("Location: {$base}");
-            return;
-        }
-
-        $scopedMarketId = Scope::marketIdForCurrentUser();
-        if ($scopedMarketId !== null && $scopedMarketId !== (int)$id) {
-            Session::flash('error','غير مصرح لك بتعديل هذا المتجر.');
-            header("Location: {$base}");
-            return;
-        }
-
-        $values = [
-            'name'   => trim((string)($_POST['name'] ?? '')),
-            'desc'   => trim((string)($_POST['desc'] ?? '')),
-            'cover'  => trim((string)($_POST['cover'] ?? '')),
-            'logo'   => trim((string)($_POST['logo'] ?? '')),
-            'status' => (string)($_POST['status'] ?? 'inactive'),
-        ];
-        $errors = $this->validate($values);
-
-        if ($errors) {
-            TwigService::refreshGlobals();
-            echo TwigService::view()->render('markets/edit.twig', [
-                'base'   => $base,
-                'id'     => (int)$id,
-                'values' => $values,
-                'errors' => $errors,
-                '_csrf'  => Csrf::token(),
-            ]);
-            return;
-        }
-
-        Market::updateById((int)$id, $values);
-        Session::flash('success','تم تحديث بيانات المتجر.');
-        header("Location: {$base}/{$id}");
-    }
 
     public function delete(int $id): void
     {
@@ -246,8 +267,14 @@ final class MarketsController
         if ($v['status'] !== 'active' && $v['status'] !== 'inactive') {
             $errors['status'] = 'الحالة غير صحيحة.';
         }
-        if (mb_strlen($v['cover']) > 100) $errors['cover'] = 'اسم الغلاف طويل.';
-        if (mb_strlen($v['logo'])  > 100) $errors['logo']  = 'اسم الشعار طويل.';
+if (isset($v['cover']) && mb_strlen($v['cover']) > 100) {
+    $errors['cover'] = 'اسم الغلاف طويل.';
+}
+
+if (isset($v['logo']) && mb_strlen($v['logo']) > 100) {
+    $errors['logo'] = 'اسم الشعار طويل.';
+}
+
         return $errors;
     }
 

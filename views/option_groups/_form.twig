@@ -1,0 +1,53 @@
+{% set old  = (old  is defined and old  is not null)  ? old  : {} %}
+{% set errs = (errs is defined and errs is not null) ? errs : {} %}
+{% set opts = (options is defined and options is not null) ? options : [] %}
+
+<div class="mb-3">
+  <label class="form-label">اسم المجموعة</label>
+  <input type="text" name="name"
+         value="{{ old.name ?? item.name ?? '' }}"
+         class="form-control {{ errs.name ? 'is-invalid' : '' }}"
+         maxlength="100" required>
+  {% if errs.name %}<div class="invalid-feedback">{{ errs.name }}</div>{% endif %}
+</div>
+
+<div class="mb-3">
+  <label class="form-label">نوع الاختيار</label>
+  {% set selType = (old.type ?? item.type ?? 'single') %}
+  <select name="type" class="form-select">
+    <option value="single" {{ selType == 'single' ? 'selected' : '' }}>اختيار مفرد</option>
+    <option value="multi"  {{ selType == 'multi'  ? 'selected' : '' }}>اختيار متعدد</option>
+  </select>
+</div>
+
+<div class="row">
+  <div class="col-md-4 mb-3">
+    <label class="form-label">إجباري؟</label>
+    {% set req = (old.required ?? item.required ?? 0) %}
+    <select name="required" class="form-select">
+      <option value="1" {{ req == 1 ? 'selected' : '' }}>نعم</option>
+      <option value="0" {{ req == 0 ? 'selected' : '' }}>لا</option>
+    </select>
+  </div>
+  <div class="col-md-4 mb-3">
+    <label class="form-label">الحد الأدنى</label>
+    <input type="number" name="min" min="0"
+           value="{{ old.min ?? item.min ?? 0 }}"
+           class="form-control {{ errs.min ? 'is-invalid' : '' }}">
+    {% if errs.min %}<div class="invalid-feedback">{{ errs.min }}</div>{% endif %}
+  </div>
+  <div class="col-md-4 mb-3">
+    <label class="form-label">الحد الأقصى</label>
+    <input type="number" name="max" min="0"
+           value="{{ old.max ?? item.max ?? '' }}"
+           class="form-control {{ errs.max ? 'is-invalid' : '' }}"
+           placeholder="اتركه فارغًا إن لم يوجد">
+    {% if errs.max %}<div class="invalid-feedback">{{ errs.max }}</div>{% endif %}
+  </div>
+</div>
+
+<div class="form-check mb-3">
+  <input class="form-check-input" type="checkbox" id="available" name="available"
+         value="1" {% if (old.available ?? item.available ?? 1) %}checked{% endif %}>
+  <label class="form-check-label" for="available">تفعيل المجموعة (متاحة للاستخدام)</label>
+</div>

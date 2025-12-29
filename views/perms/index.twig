@@ -1,0 +1,158 @@
+{% extends "layout.twig" %}
+{% block title %}الإعدادات والصلاحيات{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h4 mb-0">الإعدادات والصلاحيات</h1>
+  <a href="{{ base }}" class="btn btn-outline-primary">إدارة جميع الإعدادات</a>
+</div>
+
+{% if succ %}<div class="alert alert-success">{{ succ }}</div>{% endif %}
+{% if errs %}<div class="alert alert-danger">{{ errs|nl2br }}</div>{% endif %}
+
+<form method="post" action="{{ base }}" enctype="multipart/form-data" class="card">
+  <div class="card-body">
+    {{ csrf_field()|raw }}
+
+    <div class="accordion" id="permsAccordion">
+
+      {# 1) إغلاق التطبيق — مُغلق افتراضيًا #}
+      {% set closedOn = (closed.value == '1') %}
+      <div class="accordion-item">
+        <h2 class="accordion-header" id="headingClosed">
+          <button class="accordion-button collapsed" type="button"
+                  data-bs-toggle="collapse" data-bs-target="#collapseClosed"
+                  aria-expanded="false" aria-controls="collapseClosed">
+            <span class="me-2">إغلاق التطبيق</span>
+            <span class="badge bg-{{ closed.status == 'active' ? 'success' : 'secondary' }} ms-2">
+              {{ closed.status == 'active' ? 'مفعّل' : 'غير مفعّل' }}
+            </span>
+            <span class="badge bg-{{ closedOn ? 'danger' : 'secondary' }} ms-2">
+              {{ closedOn ? 'مغلق للمستخدمين' : 'مفتوح' }}
+            </span>
+          </button>
+        </h2>
+        <div id="collapseClosed" class="accordion-collapse collapse"
+             aria-labelledby="headingClosed" data-bs-parent="#permsAccordion">
+          <div class="accordion-body">
+            <div class="row g-3">
+              <div class="col-md-4">
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" id="site_closed_status" name="site_closed_status"
+                         {% if closed.status == 'active' %}checked{% endif %}>
+                  <label class="form-check-label" for="site_closed_status">تفعيل الإعداد</label>
+                </div>
+              </div>
+              <div class="col-md-8">
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" id="site_closed_value" name="site_closed_value"
+                         {% if closed.value == '1' %}checked{% endif %}>
+                  <label class="form-check-label" for="site_closed_value">إغلاق التطبيق (لغير المديرين)</label>
+                </div>
+              </div>
+              <div class="col-12">
+                <label class="form-label" for="site_closed_desc">وصف</label>
+                <input class="form-control" id="site_closed_desc" name="site_closed_desc"
+                       value="{{ closed.desc ?? '' }}" placeholder="وصف داخلي للإعداد">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {# 2) رسالة التنبيه — مغلق افتراضيًا #}
+      <div class="accordion-item">
+        <h2 class="accordion-header" id="headingAlert">
+          <button class="accordion-button collapsed" type="button"
+                  data-bs-toggle="collapse" data-bs-target="#collapseAlert"
+                  aria-expanded="false" aria-controls="collapseAlert">
+            <span class="me-2">رسالة تنبيه للمستخدمين</span>
+            <span class="badge bg-{{ alert.status == 'active' ? 'success' : 'secondary' }} ms-2">
+              {{ alert.status == 'active' ? 'مفعّل' : 'غير مفعّل' }}
+            </span>
+            {% if alert.value %}
+              <span class="badge bg-info text-dark ms-2">محتوى موجود</span>
+            {% endif %}
+          </button>
+        </h2>
+        <div id="collapseAlert" class="accordion-collapse collapse"
+             aria-labelledby="headingAlert" data-bs-parent="#permsAccordion">
+          <div class="accordion-body">
+            <div class="row g-3">
+              <div class="col-md-4">
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" id="site_alert_status" name="site_alert_status"
+                         {% if alert.status == 'active' %}checked{% endif %}>
+                  <label class="form-check-label" for="site_alert_status">تفعيل الإعداد</label>
+                </div>
+              </div>
+              <div class="col-12">
+                <label class="form-label" for="site_alert_value">نص التنبيه</label>
+                <textarea class="form-control" id="site_alert_value" name="site_alert_value" rows="3"
+                          placeholder="اكتب رسالة قصيرة تظهر للمستخدمين">{{ alert.value ?? '' }}</textarea>
+              </div>
+              <div class="col-12">
+                <label class="form-label" for="site_alert_desc">وصف</label>
+                <input class="form-control" id="site_alert_desc" name="site_alert_desc"
+                       value="{{ alert.desc ?? '' }}" placeholder="وصف داخلي للإعداد">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {# 3) صورة/شعار التطبيق — مغلق افتراضيًا #}
+      <div class="accordion-item">
+        <h2 class="accordion-header" id="headingImage">
+          <button class="accordion-button collapsed" type="button"
+                  data-bs-toggle="collapse" data-bs-target="#collapseImage"
+                  aria-expanded="false" aria-controls="collapseImage">
+            <span class="me-2">صورة التطبيق</span>
+            <span class="badge bg-{{ image.status == 'active' ? 'success' : 'secondary' }} ms-2">
+              {{ image.status == 'active' ? 'مفعّل' : 'غير مفعّل' }}
+            </span>
+            {% if image.value %}
+              <span class="badge bg-info text-dark ms-2">مرفوعة</span>
+            {% endif %}
+          </button>
+        </h2>
+        <div id="collapseImage" class="accordion-collapse collapse"
+             aria-labelledby="headingImage" data-bs-parent="#permsAccordion">
+          <div class="accordion-body">
+            <div class="row g-3">
+              <div class="col-md-4">
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" id="site_image_status" name="site_image_status"
+                         {% if image.status == 'active' %}checked{% endif %}>
+                  <label class="form-check-label" for="site_image_status">تفعيل الإعداد</label>
+                </div>
+              </div>
+
+              <div class="col-12 d-flex align-items-center gap-3">
+                {% set preview = image.value ? url('/' ~ image.value) : url('/assets/img/cover-placeholder.jpg') %}
+                <img src="{{ preview }}" class="rounded border" style="width:96px;height:96px;object-fit:cover;" alt="app">
+                <div class="flex-grow-1">
+                  <label class="form-label">ملف الصورة</label>
+                  <input class="form-control" type="file" name="site_image_file" accept="image/*">
+                  <div class="form-text">JPG/PNG/WEBP — حتى 5MB</div>
+                </div>
+              </div>
+
+              <div class="col-12">
+                <label class="form-label" for="site_image_desc">وصف</label>
+                <input class="form-control" id="site_image_desc" name="site_image_desc"
+                       value="{{ image.desc ?? '' }}" placeholder="وصف داخلي للإعداد">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div> {# /accordion #}
+
+    <div class="d-flex justify-content-end mt-4">
+      <button class="btn btn-primary">حفظ الإعدادات</button>
+    </div>
+  </div>
+</form>
+{% endblock %}

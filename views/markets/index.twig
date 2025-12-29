@@ -27,6 +27,12 @@
               <div class="flex-grow-1">
                 <div class="d-flex justify-content-between align-items-center">
                   <h5 class="mb-0 text-truncate">{{ m.name }}</h5>
+                  <div class="text-muted small">
+  {{ m.type == 1 ? 'المطاعم' :
+     (m.type == 2 ? 'الكافيهات' :
+     (m.type == 3 ? 'سوبر ماركت')) }}
+</div>
+
                   <span class="badge {{ m.status == 'active' ? 'bg-success' : 'bg-secondary' }}">
                     {{ m.status == 'active' ? 'نشط' : 'غير نشط' }}
                   </span>

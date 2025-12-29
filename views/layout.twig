@@ -13,20 +13,18 @@
 		<link rel="stylesheet" href="{{ url('/assets/bootstrap/bootstrap.rtl.min.css') }}">
 		<link
 		rel="stylesheet" href="{{ url('/assets/style.css') }}">
-	{# <link rel="stylesheet" href="{{ url('/assets/bootstrap/bootstrap.min.css') }}"> #}
+
+		{# كتلة اختيارية لحقن CSS إضافي من القوالب الأبناء #}
+		{% block head_assets %}{% endblock %}
 	</head>
 
-	<body class="bg-light">
+	<body
+		class="bg-light">
 		{# NAVBAR ثابت #}
-
-		{# هل المستخدم مسجّل؟ #}
 		{% set has_nav = session.user is defined and session.user %}
-
-			{% if has_nav %}
-				<nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top"> <div
-					class="container-fluid">
-
-					{# رابط "الرئيسية" حسب الدور (مالك → متجره | مدير → الداشبورد) #}
+		{% if has_nav %}
+			<nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+				<div class="container-fluid">
 					{% set ownerMid  = (scoped_market_id is defined and scoped_market_id is not null) ? scoped_market_id : (session.user.market_id ?? null) %}
 					{% set home_href = ownerMid is not null ? url('/markets/' ~ ownerMid) : url('/dashboard') %}
 
@@ -41,7 +39,6 @@
 							<li class="nav-item">
 								<a class="nav-link" href="{{ home_href }}">الرئيسية</a>
 							</li>
-
 							{% if session.user and session.user.role == 'admin' %}
 								<li class="nav-item">
 									<a class="nav-link" href="{{ url('/users') }}">المستخدمون</a>
@@ -49,11 +46,22 @@
 								<li class="nav-item">
 									<a class="nav-link" href="{{ url('/markets') }}">المتاجر</a>
 								</li>
+                										<li class="nav-item">
+											<a class="nav-link" href="{{ url('/perms') }}">الإعدادات</a>
+										</li>
+										<li><a class="nav-link" href="{{ url('/grocery/stock') }}">مستودع المنتجات</a></li>
+										
 							{% endif %}
-
 							<li class="nav-item">
 								<a class="nav-link" href="{{ url('/orders') }}">الطلبات</a>
 							</li>
+							{% if auth.role == 'admin' %}
+<li class="nav-item">
+    <a class="nav-link" href="/admincp/join-requests">
+        طلبات الانضمام
+    </a>
+</li>
+{% endif %}
 
 							<li class="nav-item dropdown">
 								<a class="nav-link dropdown-toggle" href="#" id="navDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">القائمة</a>
@@ -65,31 +73,25 @@
 										<li>
 											<a class="dropdown-item" href="{{ url('/markets') }}">عرض المتاجر</a>
 										</li>
-
 									{% endif %}
 									<li>
 										<a class="dropdown-item" href="{{ url('/orders') }}">عرض الطلبات</a>
 									</li>
 									<hr>
 									{% if session.user.role in ['admin'] %}
-
 										<li>
 											<a class="dropdown-item" href="{{ url('/cashiers') }}">عرض الكاشيرات</a>
 										</li>
 									{% endif %}
-
 								</ul>
 							</li>
 						</ul>
-
-						{# ← تم حذف كتلة "المسار" بالكامل هنا #}
 
 						<ul class="navbar-nav mb-2 mb-lg-0">
 							<li class="nav-item">
 								<span class="nav-link disabled">مرحبًا
 									{{ session.user.name ?? 'مستخدم' }}</span>
 							</li>
-
 							{% set _u = session.user ?? {} %}
 							{% if _u.role not in ['admin'] and _u.market_id is not null %}
 								<li class="nav-item">
@@ -98,7 +100,6 @@
 									</span>
 								</li>
 							{% endif %}
-
 							<li class="nav-item">
 								<form method="post" action="{{ url('/logout') }}" class="d-inline">
 									{{ csrf_field()|raw }}
@@ -109,7 +110,6 @@
 					</div>
 				</div>
 			</nav>
-
 			<div style="height:72px"></div>
 		{% endif %}
 
@@ -142,7 +142,10 @@
 			</div>
 
 			 <script src="{{ url('/assets/bootstrap/bootstrap.bundle.min.js') }}"></script>
-		 <script src="{{ url('/assets/toast.js') }}"></script>
+			 <script src="{{ url('/assets/toast.js') }}"></script>
 			 <script src="{{ url('/assets/app.js') }}"></script>
-		</body>
-	</html>
+
+			{# كتلة اختيارية لحقن JS إضافي من القوالب الأبناء #}{% block page_scripts %}
+		{% endblock %}
+	</body>
+</html>

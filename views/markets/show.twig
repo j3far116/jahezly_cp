@@ -6,21 +6,35 @@
 {% block content %}
 
 	<div class="d-flex justify-content-between align-items-center mb-3">
-		<h1 class="h4 mb-0">تفاصيل المتجر:
-			{{ market.name }}</h1>
+		<h1 class="h4 mb-0">
+			تفاصيل المتجر:
+			{{ market.name }}
+
+		</h1>
 		<div class="d-flex gap-2">
+
 			{% if session.user and session.user.role == 'admin' %}
 				<a class="btn btn-secondary" href="{{ base }}">رجوع للقائمة</a>
 			{% endif %}
 			{% if (scoped_market_id is null) or (scoped_market_id == market.id) %}
+				{% if market.type == 3 %}
+					
+				{% else %}
+					<a class="btn btn-outline-secondary" href="{{ base }}/{{ market.id }}/options">الإضافات</a>
+					<a class="btn btn-outline-primary" href="{{ base }}/{{ market.id }}/products">منتجات المتجر</a>
+					{# {% if scoped_market_id is null %}
+										<button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#confirmDeleteMarket">حذف</button>
+										{% endif %} #}
+				{% endif %}
 				<a class="btn btn-outline-secondary" href="{{ base }}/{{ market.id }}/cashiers">الكاشير</a>
 				<button class="btn btn-outline-primary" data-media="cover" data-market-id="{{ market.id }}" data-bs-toggle="modal" data-bs-target="#mediaCropModal">تغيير صورة العرض</button>
 				<button class="btn btn-outline-primary" data-media="logo" data-market-id="{{ market.id }}" data-bs-toggle="modal" data-bs-target="#mediaCropModal">تغيير الشعار</button>
 				<a class="btn btn-primary" href="{{ base }}/{{ market.id }}/edit">تعديل</a>
-				{% if scoped_market_id is null %}
-					<button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#confirmDeleteMarket">حذف</button>
-				{% endif %}
+				<a href="/admincp/markets/{{ market.id }}/branch/config" class="btn btn-warning">
+					إعدادات جميع الفروع
+				</a>
 			{% endif %}
+
 		</div>
 	</div>
 
@@ -30,13 +44,11 @@
 	<div
 		class="card mb-4">
 		{# الغلاف مع بديل افتراضي إن لم يتوفر #}
-		{% if market.cover %}
-			<div class="card-img-top overflow-hidden" style="height:180px;">
-				<img id="market-cover" src="/uploads/{{ market.cover }}" alt="{{ market.name }}" style="width:100%; height:100%; object-fit:cover; object-position:center; display:block;">
-			</div>
-		{% else %}
-			<div class="card-img-top bg-light" style="height:180px;"></div>
-		{% endif %}
+		<div class="card-img-top overflow-hidden" style="height:180px;">
+			{% set coverSrc = market.cover ? '/uploads/' ~ market.cover : base_path ~ '/assets/img/logo-placeholder.png' %}
+			<img id="market-cover" src="{{ coverSrc }}" alt="{{ market.name }}" style="width:100%; height:100%; object-fit:cover; object-position:center; display:block;">
+		</div>
+
 
 		<div class="card-body">
 			<div
@@ -46,7 +58,9 @@
 				<img id="market-logo" src="{{ logoSrc }}" alt="{{ market.name }}" class="rounded me-3" style="width:64px;height:64px;object-fit:cover;">
 
 				<div>
-					<h5 class="card-title mb-1">{{ market.name }}</h5>
+					<h5 class="card-title mb-1">
+						{{ market.name }}
+					</h5>
 					<span class="badge {{ market.status == 'active' ? 'bg-success' : 'bg-secondary' }}">
 						{{ market.status == 'active' ? 'نشط' : 'غير نشط' }}
 					</span>
@@ -60,6 +74,13 @@
 			<dl class="row mb-0">
 				<dt class="col-sm-3">المعرف</dt>
 				<dd class="col-sm-9">{{ market.id }}</dd>
+				<dt class="col-sm-3">نوع المتجر</dt>
+				<dd class="col-sm-9">
+					{{ m.type == 1 ? 'المطاعم' :
+     (m.type == 2 ? 'الكافيهات' :
+     (m.type == 3 ? 'سوبر ماركت')) }}
+				</dd>
+
 				<dt class="col-sm-3">تاريخ الإنشاء</dt>
 				<dd class="col-sm-9">{{ market.created_at }}</dd>
 			</dl>

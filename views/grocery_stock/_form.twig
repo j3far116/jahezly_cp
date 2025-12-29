@@ -1,0 +1,135 @@
+{{ csrf_field()|raw }}
+
+<div class="row g-3">
+
+    {# ------------------- القروب ------------------- #}
+    <div class="col-md-4">
+        <label class="form-label">القروب</label>
+        <select id="groupSelect" class="form-select" required>
+            <option value="">— اختر القروب —</option>
+            {% for g in groups %}
+                <option value="{{ g.id }}"
+                    {% if row is not defined and loop.first %}selected{% endif %}
+                    {% if row is defined and row.group_id == g.id %}selected{% endif %}
+                >
+                    {{ g.name }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    {# ------------------- التصنيف ------------------- #}
+    <div class="col-md-4">
+        <label class="form-label">التصنيف</label>
+        <select name="cat_id" id="catSelect" class="form-select" required>
+            {% if row is defined %}
+                {% for c in cats %}
+                    <option value="{{ c.id }}"
+                        {% if row.cat_id == c.id %}selected{% endif %}
+                    >
+                        {{ c.name }}
+                    </option>
+                {% endfor %}
+            {% else %}
+                <option value="">جاري التحميل...</option>
+            {% endif %}
+        </select>
+    </div>
+
+    {# ------------------- العلامة التجارية (اختياري) ------------------- #}
+    <div class="col-md-4">
+        <label class="form-label">العلامة التجارية (اختياري)</label>
+        <select name="brand_id" class="form-select">
+            <option value="">— بدون براند —</option>
+            {% for b in brands %}
+                <option value="{{ b.id }}"
+                    {% if row is defined and row.brand_id == b.id %}selected{% endif %}
+                >
+                    {{ b.name }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    {# ------------------- الوحدة ------------------- #}
+    <div class="col-md-4">
+        <label class="form-label">الوحدة</label>
+        <select name="unit_id" class="form-select" required>
+            <option value="">— اختر الوحدة —</option>
+            {% for u in units %}
+                <option value="{{ u.id }}"
+                    {% if row is defined and row.unit_id == u.id %}selected{% endif %}
+                >
+                    {{ u.name }}{% if u.abbreviation %} ({{ u.abbreviation }}){% endif %}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    {# ------------------- اسم المنتج ------------------- #}
+    <div class="col-md-4">
+        <label class="form-label">اسم المنتج</label>
+        <input name="name" class="form-control" value="{{ row.name ?? '' }}" required>
+    </div>
+
+    {# ------------------- الباركود ------------------- #}
+    <div class="col-md-4">
+        <label class="form-label">الباركود</label>
+        <input name="barcode" class="form-control" value="{{ row.barcode ?? '' }}" required>
+    </div>
+
+    {# ------------------- الحجم ------------------- #}
+    <div class="col-md-4">
+        <label class="form-label">الحجم</label>
+        <input name="size" class="form-control" value="{{ row.size ?? '' }}" required>
+    </div>
+
+    {# ------------------- الصورة ------------------- #}
+    <div class="col-md-4">
+        <label class="form-label">الصورة</label>
+        <input type="file" name="image" class="form-control">
+        {% if row is defined and row.image %}
+            <div class="mt-2">
+                <img src="/uploads/grocery/{{ row.image }}" style="height:60px;" class="rounded border">
+            </div>
+        {% endif %}
+    </div>
+
+</div>
+
+{# ------------------- JavaScript ------------------- #}
+<script>
+document.getElementById('groupSelect').addEventListener('change', function () {
+    let id = this.value;
+    let sel = document.getElementById('catSelect');
+    sel.innerHTML = '<option>جاري التحميل...</option>';
+
+    fetch(`/admincp/grocery/groups/${id}/cats`)
+        .then(r => r.json())
+        .then(list => {
+            sel.innerHTML = '';
+            if (!Array.isArray(list) || list.length === 0) {
+                sel.innerHTML = '<option value="">لا يوجد تصنيفات</option>';
+                return;
+            }
+            list.forEach(c => {
+                let o = document.createElement('option');
+                o.value = c.id;
+                o.textContent = c.name;
+                sel.appendChild(o);
+            });
+        });
+});
+
+{# 🔥 تحميل التصنيفات تلقائيًا عند فتح صفحة create #}
+document.addEventListener("DOMContentLoaded", function () {
+    const groupSelect = document.getElementById("groupSelect");
+
+    // في وضع create اختر أول قروب تلقائيًا
+    if ("{{ row is not defined ? '1' : '0' }}" === "1") {
+        if (groupSelect.value !== "") {
+            groupSelect.dispatchEvent(new Event("change"));
+        }
+    }
+});
+</script>

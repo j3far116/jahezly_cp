@@ -1,0 +1,219 @@
+{% extends "layout.twig" %}
+{% block title %}تعديل إعداد:
+	{{ row.key }}
+{% endblock %}
+
+{% block content %}
+	<div class="d-flex justify-content-between align-items-center mb-3">
+		<h1 class="h4">تعديل إعداد</h1>
+		<a href="{{ base }}?type={{ row.type }}" class="btn btn-light">رجوع</a>
+	</div>
+
+	{% if errs %}
+		<div class="alert alert-danger">{{ errs|nl2br }}</div>
+	{% endif %}
+
+	<form method="post" action="{{ base }}/{{ row.key }}/update" enctype="multipart/form-data" class="card">
+
+		<div class="card-body">
+			{{ csrf_field()|raw }}
+
+			<div class="row g-3">
+
+				<div class="col-md-4">
+					<label class="form-label">الفئة</label>
+					<input class="form-control" value="{{ row.type }}" disabled>
+				</div>
+
+				<div class="col-md-4">
+					<label class="form-label">المفتاح</label>
+					<input class="form-control" value="{{ row.key }}" disabled>
+				</div>
+
+				<div class="col-md-4">
+					<label class="form-label">نوع القيمة</label>
+					<input class="form-control" value="{{ row.val_type }}" disabled>
+				</div>
+
+				<div class="col-md-4">
+					<label class="form-label">الحالة</label>
+					<select name="status" class="form-select">
+						<option value="active" {{ row.status=='active' ? 'selected' : '' }}>active</option>
+						<option value="inactive" {{ row.status=='inactive' ? 'selected' : '' }}>inactive</option>
+					</select>
+				</div>
+
+				<div class="col-12">
+					<label class="form-label">الوصف</label>
+					<input type="text" name="desc" class="form-control" value="{{ row.desc ?? '' }}">
+				</div>
+
+				{# ============================== #
+				               عرض خانة القيمة حسب val_type
+				               ============================== #}
+
+				{% if row.val_type == 'text' %}
+					<div class="col-12">
+						<label class="form-label">القيمة</label>
+						<input type="text" name="value_text" class="form-control" value="{{ row.value }}">
+					</div>
+
+				{% elseif row.val_type == 'textarea' %}
+					<div class="col-12">
+						<label class="form-label">القيمة (نص طويل)</label>
+						<textarea name="value_textarea" class="form-control" rows="4">{{ row.value }}</textarea>
+					</div>
+
+				{% elseif row.val_type == 'switch' %}
+					<div class="col-12">
+						<label class="form-label d-block">تشغيل / إيقاف</label>
+						<div class="form-check form-switch">
+							<input type="checkbox" class="form-check-input" name="value_switch" id="switchInputEdit" value="1" {{ row.value == '1' ? 'checked' : '' }}>
+							<label class="form-check-label" for="switchInputEdit">
+								تفعيل الإعداد
+							</label>
+						</div>
+						<div class="form-text">القيمة الفعلية تُخزن 1 أو 0.</div>
+					</div>
+
+				{% elseif row.val_type == 'select' %}
+					<div class="col-12">
+						<label class="form-label">خيارات القائمة</label>
+
+						<table class="table table-bordered" id="opt_table_edit">
+							<thead>
+								<tr>
+									<th style="width:40%">Value</th>
+									<th style="width:40%">Label</th>
+									<th style="width:20%"></th>
+								</tr>
+							</thead>
+							<tbody>
+								{% for op in options %}
+									<tr>
+										<td><input class="form-control v" value="{{ op.value }}" oninput="updateRawEdit()"></td>
+										<td><input class="form-control l" value="{{ op.label }}" oninput="updateRawEdit()"></td>
+										<td class="text-center">
+											<button type="button" class="btn btn-sm btn-danger" onclick="this.closest('tr').remove(); updateRawEdit();">×</button>
+										</td>
+									</tr>
+								{% endfor %}
+							</tbody>
+						</table>
+
+						<button type="button" class="btn btn-sm btn-secondary mb-2" onclick="addOptRowEdit()">+ خيار جديد</button>
+
+						<textarea name="options" id="options_json_edit" class="d-none"></textarea>
+
+						<label class="form-label mt-2">القيمة المختارة (value)</label>
+						<input type="text" name="value_select" class="form-control text-start" style="direction:ltr" value="{{ row.value }}">
+					</div>
+
+				{% elseif row.val_type == 'image' %}
+					<div class="col-12">
+						<label class="form-label d-block">الصورة الحالية</label>
+						{% if row.value %}
+							<img src="/uploads/{{ row.value }}" class="rounded border mb-2" style="width:150px;height:100px;object-fit:cover">
+						{% else %}
+							<div class="text-muted mb-2">لا توجد صورة محفوظة.</div>
+						{% endif %}
+						<input type="file" name="value_image" class="form-control">
+						<div class="form-text">اتركه فارغاً للإبقاء على الصورة الحالية.</div>
+					</div>
+				{% endif %}
+
+			</div>
+
+			{# ============================
+			           🔥 قسم المتاجر الممنوعة
+			           يظهر فقط إذا نوع الإعداد branches
+			           ============================ #}
+
+			{# المتاجر الممنوعة من تعديل الإعداد #}
+{% if row.type == 'branches' %}
+<div class="col-12">
+    <label class="form-label fw-bold">المتاجر الممنوعة من تعديل هذا الإعداد:</label>
+
+    <div class="border rounded p-3" style="background:#fafafa; max-height:240px; overflow-y:auto;">
+
+        {% if branches is not empty %}
+            {% for br in branches %}
+                <div class="form-check mb-1">
+                    <input class="form-check-input"
+                           type="checkbox"
+                           id="blocked_{{ br.id }}"
+                           name="blocked_IDs[]"
+                           value="{{ br.id }}"
+                           {{ br.id in blocked_ids ? 'checked' }}>
+                    <label class="form-check-label" for="blocked_{{ br.id }}">
+                        {{ br.name }} (ID: {{ br.id }})
+                    </label>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="text-muted">لا توجد فروع متاحة.</div>
+        {% endif %}
+
+    </div>
+
+    <div class="form-text text-muted mt-1">
+        سيتم منع هذه الفروع من تعديل قيمة الإعداد في صفحة إعدادات الفروع.
+    </div>
+</div>
+{% endif %}
+
+
+
+		</div>
+
+		<div class="card-footer d-flex justify-content-end gap-2">
+			<a href="{{ base }}?type={{ row.type }}" class="btn btn-light">إلغاء</a>
+			<button class="btn btn-primary">حفظ</button>
+		</div>
+	</form>
+{% endblock %}
+
+{% block page_scripts %}
+	{% if row.val_type == 'select' %}
+		 <script>
+		(function () {
+		
+		    function updateRawEdit() {
+		        const rows = document.querySelectorAll('#opt_table_edit tbody tr');
+		        const arr  = [];
+		
+		        rows.forEach(function (r) {
+		            const v = r.querySelector('.v').value.trim();
+		            const l = r.querySelector('.l').value.trim();
+		            if (v.length > 0) {
+		                arr.push({ value: v, label: l || v });
+		            }
+		        });
+		
+		        document.getElementById('options_json_edit').value = JSON.stringify(arr);
+		    }
+		
+		    window.updateRawEdit = updateRawEdit;
+		
+		    window.addOptRowEdit = function (v = '', l = '') {
+		        const tr = document.createElement('tr');
+		        tr.innerHTML = `
+		            <td><input class="form-control v" value="${v}" oninput="updateRawEdit()"></td>
+		            <td><input class="form-control l" value="${l}" oninput="updateRawEdit()"></td>
+		            <td class="text-center">
+		                <button type="button" class="btn btn-sm btn-danger"
+		                    onclick="this.closest('tr').remove(); updateRawEdit();">×</button>
+		            </td>
+		        `;
+		        document.querySelector('#opt_table_edit tbody').appendChild(tr);
+		        updateRawEdit();
+		    };
+		
+		    document.addEventListener('DOMContentLoaded', function () {
+		        updateRawEdit();
+		    });
+		
+		})();
+		</script>
+	{% endif %}
+{% endblock %}

@@ -1,0 +1,167 @@
+{% extends "layout.twig" %}
+{% block title %}تخصيص خيارات المجموعة — {{ group.name }}{% endblock %}
+
+{% block head_assets %}
+  <link rel="stylesheet" href="/admincp/views/option_groups/customize.css">
+  <script src="/admincp/assets/js/Sortable.min.js"></script>
+  <script src="/admincp/views/option_groups/customize.js" defer></script>
+{% endblock %}
+
+
+
+{% block content %}
+
+{# ✅ عنصر جذر يحمل كل القيم التي يحتاجها JS كـ data-* #}
+<div id="og-customize-root"
+     data-csrf="{{ csrf_token() }}"
+     data-market-id="{{ market.id }}"
+     data-product-id="{{ product.id }}"
+     data-group-id="{{ group.id }}"
+     data-base="/admincp/markets/{{ market.id }}/products/{{ product.id }}">
+</div>
+
+<h1 class="h4 mb-4 d-flex justify-content-between align-items-center">
+  تخصيص خيارات المجموعة: {{ group.name }}
+</h1>
+
+<div class="row">
+  <!-- العمود الأيسر -->
+  <div class="col-md-6">
+    <h5 class="mb-3">الخيارات المتاحة</h5>
+    <div class="mb-4">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <h6 class="text-primary fw-bold mb-0">🔸 خيارات هذا المنتج</h6>
+        <button id="btn-manage" class="btn btn-outline-secondary btn-sm">⚙️ إدارة خيارات المنتج</button>
+      </div>
+
+      <ul class="list-group shadow-sm" id="product-options">
+        {# ... نفس حلقة العرض عندك ... #}
+        {% for o in product_options %}
+          {% if o.id not in selected_options|map(x => x.id) %}
+            <li class="list-group-item d-flex justify-content-between align-items-center" data-id="{{ o.id }}">
+              <div>
+                {{ o.name }}
+                {% if o.price and o.price != 0 %}
+                  <span class="text-muted small">({{ o.price|number_format(2) }} ر.س)</span>
+                {% endif %}
+              </div>
+              <button class="btn btn-sm btn-outline-success add-option" data-id="{{ o.id }}">➕</button>
+            </li>
+          {% endif %}
+        {% else %}
+          <li class="list-group-item text-center text-muted">لا توجد خيارات خاصة بهذا المنتج</li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <div>
+      <h6 class="text-secondary fw-bold mb-2">⚙️ الخيارات العامة للمتجر</h6>
+      <ul class="list-group shadow-sm" id="global-options">
+        {# ... نفس حلقة العرض عندك ... #}
+        {% for o in global_options %}
+          {% if o.id not in selected_options|map(x => x.id) %}
+            <li class="list-group-item d-flex justify-content-between align-items-center" data-id="{{ o.id }}">
+              <div>
+                {{ o.name }}
+                {% if o.price and o.price != 0 %}
+                  <span class="text-muted small">({{ o.price|number_format(2) }} ر.س)</span>
+                {% endif %}
+              </div>
+              <button class="btn btn-sm btn-outline-success add-option" data-id="{{ o.id }}">➕</button>
+            </li>
+          {% endif %}
+        {% else %}
+          <li class="list-group-item text-center text-muted">لا توجد خيارات عامة متاحة</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+
+  <!-- العمود الأيمن -->
+  <div class="col-md-6">
+    <h5>الخيارات ضمن المجموعة</h5>
+    <ul class="list-group shadow-sm" id="selected-list">
+      {# ... نفس حلقة العرض عندك ... #}
+      {% for o in selected_options %}
+        <li class="list-group-item d-flex justify-content-between align-items-center" data-id="{{ o.id }}">
+          <div class="d-flex align-items-center">
+            <span class="grip me-2">⋮⋮</span>
+            <span>
+              {{ o.name }}
+              {% if o.price and o.price != 0 %}
+                <span class="text-muted small">({{ o.price|number_format(2) }} ر.س)</span>
+              {% endif %}
+            </span>
+          </div>
+          <button class="btn btn-sm btn-outline-danger remove-option" data-id="{{ o.id }}">➖</button>
+        </li>
+      {% else %}
+        <li class="list-group-item text-center text-muted">لم تتم إضافة أي خيار بعد</li>
+      {% endfor %}
+    </ul>
+    <button id="save-order" class="btn btn-primary mt-3">💾 حفظ الترتيب</button>
+  </div>
+</div>
+
+
+{# مودال إدارة خيارات المنتج #}
+<!-- ⚙️ نافذة إدارة خيارات المنتج -->
+<div class="modal fade" id="manageOptionsModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header bg-dark text-white">
+        <h5 class="modal-title">⚙️ إدارة خيارات المنتج</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+        <table class="table table-sm table-striped align-middle" id="product-options-table">
+          <thead class="table-light">
+            <tr>
+              <th>#</th>
+              <th>الاسم</th>
+              <th>السعر</th>
+              <th style="width:120px;">إجراءات</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for o in product_options %}
+              <tr data-id="{{ o.id }}">
+                <td>{{ o.id }}</td>
+                <td><input type="text" class="form-control form-control-sm name" value="{{ o.name }}"></td>
+                <td><input type="number" class="form-control form-control-sm price" value="{{ o.price }}"></td>
+                <td>
+                  <button class="btn btn-sm btn-success save-opt">💾</button>
+                  <button class="btn btn-sm btn-danger del-opt">🗑️</button>
+                </td>
+              </tr>
+            {% else %}
+              <tr>
+                <td colspan="4" class="text-center text-muted">لا توجد خيارات خاصة بالمنتج بعد</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+        <hr>
+
+        <div class="d-flex">
+          <input type="text" id="new-opt-name" class="form-control me-2" placeholder="اسم الخيار الجديد">
+          <input type="number" id="new-opt-price" class="form-control me-2" placeholder="السعر" step="0.01">
+          <button id="btn-add-opt" class="btn btn-primary">➕ إضافة</button>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{# Toast Container #}
+<div class="position-fixed top-0 end-0 p-3" style="z-index: 1055"></div>
+
+
+
+{% endblock %}

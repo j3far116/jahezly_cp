@@ -1,0 +1,72 @@
+{% extends "layout.twig" %}
+
+{% block title %}قروبات مستودع السوبرماركت{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h4 mb-0">قروبات مستودع السوبرماركت</h1>
+
+    <div class="d-flex gap-2">
+        <a href="{{ base }}/create" class="btn btn-primary">
+            + إضافة قروب جديد
+        </a>
+        <a href="/admincp/grocery/stock" class="btn btn-outline-secondary">
+            رجوع للمستودع
+        </a>
+    </div>
+</div>
+
+{% if success %}
+    <div class="alert alert-success">{{ success }}</div>
+{% endif %}
+
+{% if errs %}
+    <div class="alert alert-danger">
+        <ul class="mb-0">
+            {% for e in errs %}
+                <li>{{ e }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endif %}
+
+{% if groups is empty %}
+    <div class="alert alert-info">لا توجد قروبات حتى الآن.</div>
+{% else %}
+    <table class="table table-bordered align-middle">
+        <thead class="table-light">
+            <tr>
+                <th style="width:80px;">#</th>
+                <th>اسم القروب</th>
+                <th style="width:120px;">الحالة</th>
+                <th style="width:160px;">إجراءات</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for g in groups %}
+                <tr>
+                    <td>{{ g.id }}</td>
+                    <td>{{ g.name }}</td>
+                    <td>
+                        <span class="badge {{ g.status == 'active' ? 'bg-success' : 'bg-secondary' }}">
+                            {{ g.status == 'active' ? 'نشط' : 'غير نشط' }}
+                        </span>
+                    </td>
+                    <td>
+                        <a href="{{ base }}/{{ g.id }}/edit" class="btn btn-sm btn-outline-primary">
+                            تعديل
+                        </a>
+                        <a href="{{ base }}/{{ g.id }}/delete"
+                           class="btn btn-sm btn-outline-danger"
+                           onclick="return confirm('تأكيد حذف هذا القروب؟');">
+                            حذف
+                        </a>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endif %}
+
+{% endblock %}

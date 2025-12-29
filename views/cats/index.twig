@@ -1,0 +1,185 @@
+{% extends "layout.twig" %}
+{% block title %}أقسام المنتجات — {{ market.name }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h4 mb-0">أقسام المنتجات — {{ market.name }}</h1>
+  <a href="{{ back_products }}" class="btn btn-light">رجوع للمنتجات</a>
+</div>
+
+{% if errs %}
+    <div class="alert alert-warning">
+        {% for e in errs %}
+            {{ e }}<br>
+        {% endfor %}
+    </div>
+{% endif %}
+
+
+{# إضافة قسم جديد #}
+<div class="card mb-3">
+  <div class="card-header">إضافة قسم جديد</div>
+  <div class="card-body">
+    <form method="post" action="{{ base }}">
+      {{ csrf_field()|raw }}
+      <div class="row g-2">
+        <div class="col-md-8">
+          <input type="text" name="name" class="form-control" maxlength="255"
+                 placeholder="اسم القسم" value="{{ (old.name ?? '') }}" required>
+        </div>
+        <div class="col-md-4 d-grid">
+          <button class="btn btn-primary" type="submit">إضافة</button>
+        </div>
+      </div>
+      <input type="hidden" name="type" value="{{ type }}">
+    </form>
+  </div>
+</div>
+
+{% if cats is empty %}
+  <div class="alert alert-info">لا توجد أقسام بعد.</div>
+{% else %}
+
+  {# شريط أدوات الحفظ/الإعادة #}
+  <div class="d-flex justify-content-end gap-2 mb-2">
+    <button type="button" id="save-order" class="btn btn-success btn-sm">حفظ الترتيب</button>
+    <button type="button" id="reset-order" class="btn btn-outline-secondary btn-sm">إعادة تعيين</button>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-hover align-middle">
+      <thead class="table-light">
+        <tr>
+          <th style="width:56px">سحب</th>
+          <th style="width:70px">#</th>
+          <th>الاسم</th>
+          <th>المنتجات</th>   
+          <th style="width:140px">تحريك</th>
+          <th style="width:200px">إجراءات</th>
+        </tr>
+      </thead>
+      <tbody id="cats-list" class="table-group-divider">
+        {% for c in cats %}
+          <tr data-id="{{ c.id }}" draggable="true">
+            {# مقبض السحب ⠿ #}
+            <td class="text-center">
+              <button type="button" class="btn btn-sm btn-outline-secondary" title="اسحب لإعادة الترتيب">⠿</button>
+            </td>
+
+            <td class="text-muted">{{ c.id }}</td>
+            <td>{{ c.name }}</td>
+
+            <td>
+    <span class="badge bg-primary">
+        {{ c.products_count }} منتج
+    </span>
+</td>
+
+            {# أزرار التنقّل فقط #}
+            <td>
+              <div class="btn-group btn-group-sm" role="group" aria-label="تحريك">
+                <button type="button" class="btn btn-outline-secondary" data-act="up"   title="أعلى">▲</button>
+                <button type="button" class="btn btn-outline-secondary" data-act="down" title="أسفل">▼</button>
+              </div>
+            </td>
+
+            {# أزرار التعديل/الحذف فقط #}
+            <td>
+              <div class="btn-group btn-group-sm" role="group" aria-label="إجراءات">
+                <a href="{{ base }}/{{ c.id }}/edit" class="btn btn-outline-primary">تعديل</a>
+                <a href="{{ base }}/{{ c.id }}/delete/confirm" class="btn btn-outline-danger">حذف</a>
+              </div>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {# رابط الحفظ + CSRF لاستخدامهما من JS #}
+  <input type="hidden" id="reorder-url" value="{{ reorder_url }}">
+  {{ csrf_field()|raw }}
+
+{% endif %}
+{% endblock %}
+
+{% block page_scripts %}
+<script>
+(function(){
+  const tbody   = document.getElementById('cats-list');
+  const btnSave = document.getElementById('save-order');
+  const btnReset= document.getElementById('reset-order');
+  const urlEl   = document.getElementById('reorder-url');
+  const csrfEl  = document.querySelector('input[name="_csrf"]');
+
+  if (!tbody || !btnSave || !urlEl || !csrfEl) return;
+
+  let dragging = null;
+
+  // سحب/إفلات
+  tbody.addEventListener('dragstart', (e) => {
+    const tr = e.target.closest('tr[draggable="true"]');
+    if (!tr) return;
+    dragging = tr;
+    tr.classList.add('table-active');
+    e.dataTransfer.effectAllowed = 'move';
+  });
+  tbody.addEventListener('dragend', (e) => {
+    const tr = e.target.closest('tr[draggable="true"]');
+    if (tr) tr.classList.remove('table-active');
+    dragging = null;
+  });
+  tbody.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    const tr = e.target.closest('tr[draggable="true"]');
+    if (!dragging || !tr || tr === dragging) return;
+    const rect = tr.getBoundingClientRect();
+    const before = (e.clientY - rect.top) < rect.height / 2;
+    if (before) tbody.insertBefore(dragging, tr);
+    else tbody.insertBefore(dragging, tr.nextSibling);
+  });
+
+  // تنقّل لأعلى/أسفل
+  tbody.addEventListener('click', (e) => {
+    const btn = e.target.closest('button[data-act]');
+    if (!btn) return;
+    const tr = e.target.closest('tr[draggable="true"]');
+    if (!tr) return;
+
+    if (btn.getAttribute('data-act') === 'up') {
+      const prev = tr.previousElementSibling;
+      if (prev) tbody.insertBefore(tr, prev);
+    } else {
+      const next = tr.nextElementSibling;
+      if (next) tbody.insertBefore(next, tr);
+    }
+  });
+
+  // حفظ الترتيب
+  btnSave.addEventListener('click', async () => {
+    const ids = Array.from(tbody.querySelectorAll('tr[data-id]')).map(tr => tr.getAttribute('data-id'));
+    if (!ids.length) return;
+
+    const fd = new FormData();
+    fd.append('_csrf', csrfEl.value);
+    ids.forEach(id => fd.append('ids[]', id));
+
+    try {
+      const resp = await fetch(urlEl.value, {
+        method: 'POST',
+        headers: { 'X-Requested-With': 'fetch', 'Accept': 'application/json' },
+        body: fd
+      });
+      const j = await resp.json();
+      if (!j || !j.ok) throw new Error(j.msg || 'فشل الحفظ');
+      window.showToast ? showToast('success', 'تم حفظ الترتيب') : alert('تم حفظ الترتيب');
+    } catch (e) {
+      window.showToast ? showToast('error', 'تعذر حفظ الترتيب') : alert('تعذر حفظ الترتيب');
+    }
+  });
+
+  // إعادة تعيين
+  btnReset && btnReset.addEventListener('click', () => window.location.reload());
+})();
+</script>
+{% endblock %}

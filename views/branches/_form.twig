@@ -6,15 +6,6 @@
 
 <div class="row g-3">
   <div class="col-md-6">
-    <label class="form-label">النوع</label>
-    <select name="type" class="form-select {% if errors.type %}is-invalid{% endif %}" required>
-      <option value="1" {% if values.type|default('1') == '1' %}selected{% endif %}>المطاعم</option>
-      <option value="2" {% if values.type|default('1') == '2' %}selected{% endif %}>الكافيهات</option>
-    </select>
-    {% if errors.type %}<div class="invalid-feedback">{{ errors.type }}</div>{% endif %}
-  </div>
-
-  <div class="col-md-6">
     <label class="form-label">الموقع</label>
     <select name="location_id" class="form-select {% if errors.location_id %}is-invalid{% endif %}" required>
       {% if locations is not empty %}

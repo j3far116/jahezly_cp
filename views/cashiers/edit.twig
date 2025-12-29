@@ -36,13 +36,14 @@
         <div class="form-text">3–20 محرفًا (حروف/أرقام/شرطة سفلية فقط).</div>
       </div>
 
-      <div class="col-md-3">
+      {# <div class="col-md-3">
         <label class="form-label">الدور</label>
         <select name="role" class="form-select" required>
           <option value="cashier" {{ assign.role=='cashier' ? 'selected' : '' }}>كاشير</option>
           <option value="owner"   {{ assign.role=='owner'   ? 'selected' : '' }}>مالك</option>
         </select>
-      </div>
+      </div> #}
+      <input type="hidden" name="role" value="cashier">
 
       <div class="col-md-3">
         <label class="form-label">الحالة</label>
@@ -68,9 +69,9 @@
         <input type="password" name="password_confirm" class="form-control" placeholder="أعد إدخال كلمة المرور">
       </div>
 
-      <div class="col-12">
+       <div class="col-12">
         <label class="form-label">الفروع المسموح بها (اختياري)</label>
-        <select name="branch_ids[]" class="form-select" multiple size="6">
+        <select name="branch_ids[]" class="form-select" size="6">
           {% set current = assign.branch_ids ?? [] %}
           {% for b in branches %}
             <option value="{{ b.id }}" {{ b.id in current ? 'selected' : '' }}>{{ b.name }}</option>
@@ -80,6 +81,9 @@
         </select>
         <div class="form-text">اتركها فارغة للسماح بكل فروع المتجر.</div>
       </div>
+
+
+
     </div>
 
     <div class="mt-3 d-flex gap-2">
@@ -89,10 +93,10 @@
   </form>
 
   {# حذف بدون سكربت: صفحة تأكيد وسيطة (ينبغي أن تكون مضافة في الراوتر) #}
-  <div class="mt-4">
+  {# <div class="mt-4">
     <a class="btn btn-sm btn-outline-danger"
        href="{{ base }}/{{ assign.id }}/delete/confirm">
       حذف
     </a>
-  </div>
+  </div> #}
 {% endblock %}

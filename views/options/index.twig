@@ -1,0 +1,102 @@
+{% extends "layout.twig" %}
+{% block title %}إضافات
+	{{ market.name }}
+{% endblock %}
+
+{% block content %}
+	<div class="d-flex justify-content-between align-items-center mb-3">
+		<h1 class="h4 mb-0">إضافات:
+			{{ market.name }}</h1>
+		<div class="d-flex gap-2">
+			{% if scoped_market_id is null or scoped_market_id == market.id %}
+				<a href="{{ admin_base }}/markets/{{ market.id }}" class="btn btn-outline-secondary">رجوع للمتجر</a>
+				<a href="{{ base }}/create" class="btn btn-primary">إضافة خيار</a>
+			{% endif %}
+		</div>
+	</div>
+
+	{% if options is empty %}
+		<div class="alert alert-info">لا توجد إضافات بعد.</div>
+	{% else %}
+		<div class="table-responsive">
+			<table class="table table-hover align-middle">
+				<thead class="table-light">
+					<tr>
+						<th style="width:70px">#</th>
+						<th>الاسم</th>
+						<th style="width:120px">السعر</th>
+						<th style="width:110px">الحالة</th>
+						<th class="text-center">عدد المنتجات</th>
+						<th style="width:200px">إجراءات</th>
+					</tr>
+				</thead>
+				<tbody class="table-group-divider">
+					{% for o in options %}
+						<tr>
+							<td>{{ o.id }}</td>
+							<td>{{ o.name }}</td>
+							<td>{{ o.price|number_format(2) }}
+								ر.س</td>
+							<td>
+								<span class="badge {{ o.available ? 'bg-success' : 'bg-secondary' }}">
+									{{ o.available ? 'متاح' : 'غير متاح' }}
+								</span>
+							</td>
+							<td class="text-center">
+  {% if o.products_count > 0 %}
+    <button type="button"
+            class="btn btn-sm btn-primary"
+            data-bs-toggle="popover"
+            data-bs-placement="top"
+            data-bs-trigger="focus"
+            data-bs-content="{{ o.products_names }}">
+      {{ o.products_count }}
+    </button>
+  {% else %}
+    <span class="badge bg-secondary">0</span>
+  {% endif %}
+</td>
+
+
+							<td>
+								<div class="btn-group btn-group-sm" role="group" aria-label="إجراءات">
+									{% if scoped_market_id is null or scoped_market_id == market.id %}
+										<a href="{{ base }}/{{ o.id }}/edit" class="btn btn-outline-secondary">تعديل</a>
+										{% if o.products_count > 0 %}
+  <button type="button"
+          class="btn btn-sm btn-outline-danger"
+          disabled
+          title="لا يمكن حذف الإضافة لأنها مرتبطة بمنتجات">
+    حذف
+  </button>
+{% else %}
+  <a href="{{ base }}/{{ o.id }}/delete/confirm"
+     class="btn btn-sm btn-outline-danger"
+     onclick="return confirm('هل أنت متأكد من حذف هذه الإضافة؟');">
+    حذف
+  </a>
+{% endif %}
+
+									{% endif %}
+								</div>
+							</td>
+						</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		</div>
+	{% endif %}
+
+
+	<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const popoverTriggerList = [].slice.call(
+    document.querySelectorAll('[data-bs-toggle="popover"]')
+  );
+  popoverTriggerList.map(function (el) {
+    return new bootstrap.Popover(el);
+  });
+});
+</script>
+
+{% endblock %}

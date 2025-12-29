@@ -1,0 +1,159 @@
+{% extends "layout.twig" %}
+{% block title %}إعدادات فروع المتجر{% endblock %}
+
+{% block content %}
+
+<h1 class="h5 mb-4">إعدادات فروع المتجر: {{ market.name }}</h1>
+
+<form method="post" action="/admincp/markets/{{ market.id }}/branch/config/save">
+    <input type="hidden" name="_csrf" value="{{ _csrf }}">
+
+    <table class="table table-bordered table-striped align-middle">
+        <thead class="table-light">
+            <tr>
+                <th class="text-center" style="width:240px;">الإعداد</th>
+                {% for branch in branches %}
+                    <th class="text-center">{{ branch.name }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+
+        <tbody>
+
+        {% for p in branches[0].configs %}
+        <tr>
+            <th class="fw-bold">{{ p.desc ?: p.key }}</th>
+
+            {% for branch in branches %}
+                {% set cfg = branch.configs[loop.parent.loop.index0] %}
+                {% set val = (cfg.value is null or cfg.value == '') ? cfg.default : cfg.value %}
+
+                <td>
+
+                    {% if not cfg.editable %}
+                    {# ============================
+                       غير مسموح بالتعديل
+                       ============================ #}
+
+                        <div class="text-muted small">🔒 غير مسموح لهذا الفرع</div>
+
+                        {% if cfg.val_type == 'text' %}
+                            <input type="text" value="{{ val }}" class="form-control bg-light" disabled>
+
+                        {% elseif cfg.val_type == 'textarea' %}
+                            <textarea class="form-control bg-light" disabled rows="2">{{ val }}</textarea>
+
+                        {% elseif cfg.val_type == 'switch' %}
+                            <div class="form-check form-switch text-center">
+                                <input type="checkbox" class="form-check-input" disabled {{ val == '1' ? 'checked' }}>
+                            </div>
+
+                        {% elseif cfg.val_type == 'select' %}
+                            <select class="form-select bg-light" disabled>
+                                {% for opt in cfg.options_arr %}
+                                    <option value="{{ opt.value }}" {{ val == opt.value ? 'selected' }}>
+                                        {{ opt.label }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        {% endif %}
+
+                    {% else %}
+                    {# ============================
+                       مسموح بالتعديل
+                       ============================ #}
+
+                        {% set reset_id = "reset-" ~ branch.id ~ "-" ~ cfg.key %}
+
+                        {% if cfg.val_type == 'text' %}
+                            <div class="input-group input-group-sm">
+                                <input type="text"
+                                       name="cfg[{{ branch.id }}][{{ cfg.key }}]"
+                                       value="{{ val }}"
+                                       class="form-control">
+
+                                <button type="submit"
+                                        form="{{ reset_id }}"
+                                        class="btn btn-outline-warning ms-1">
+                                    ↩
+                                </button>
+                            </div>
+
+                        {% elseif cfg.val_type == 'textarea' %}
+                            <div class="input-group input-group-sm">
+                                <textarea name="cfg[{{ branch.id }}][{{ cfg.key }}]"
+                                          class="form-control"
+                                          rows="2">{{ val }}</textarea>
+
+                                <button type="submit"
+                                        form="{{ reset_id }}"
+                                        class="btn btn-outline-warning ms-1">
+                                    ↩
+                                </button>
+                            </div>
+
+                        {% elseif cfg.val_type == 'switch' %}
+                            <div class="d-flex align-items-center justify-content-between">
+
+                                <div class="form-check form-switch">
+                                    <input type="hidden"
+                                           name="cfg[{{ branch.id }}][{{ cfg.key }}]"
+                                           value="0">
+
+                                    <input type="checkbox"
+                                           class="form-check-input"
+                                           name="cfg[{{ branch.id }}][{{ cfg.key }}]"
+                                           value="1"
+                                           {{ val == '1' ? 'checked' }}>
+                                </div>
+
+                                <button type="submit"
+                                        form="{{ reset_id }}"
+                                        class="btn btn-sm btn-outline-warning ms-2">
+                                    ↩
+                                </button>
+                            </div>
+
+                        {% elseif cfg.val_type == 'select' %}
+                            <div class="input-group input-group-sm">
+                                <select name="cfg[{{ branch.id }}][{{ cfg.key }}]"
+                                        class="form-select">
+                                    {% for opt in cfg.options_arr %}
+                                        <option value="{{ opt.value }}"
+                                            {{ val == opt.value ? 'selected' }}>
+                                            {{ opt.label }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+
+                                <button type="submit"
+                                        form="{{ reset_id }}"
+                                        class="btn btn-outline-warning ms-1">
+                                    ↩
+                                </button>
+                            </div>
+                        {% endif %}
+
+                        {# فورم إعادة الافتراضي #}
+                        <form id="{{ reset_id }}"
+                              method="post"
+                              action="/admincp/markets/{{ market.id }}/branch/{{ branch.id }}/config/{{ cfg.key }}/reset"
+                              onsubmit="return confirm('هل تريد إعادة الإعداد {{ cfg.key }} إلى القيمة الافتراضية لهذا الفرع؟');">
+                            <input type="hidden" name="_csrf" value="{{ _csrf }}">
+                        </form>
+
+                    {% endif %}
+
+                </td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+
+        </tbody>
+    </table>
+
+    <button class="btn btn-primary">حفظ جميع التغييرات</button>
+
+</form>
+
+{% endblock %}

@@ -1,0 +1,49 @@
+{% set old  = old  is defined and old  is not null ? old  : {} %}
+{% set errs = errs is defined and errs is not null ? errs : {} %}
+{% set cats = cats is defined and cats is not null ? cats : [] %}
+
+<div class="mb-3">
+  <label class="form-label">الاسم</label>
+  <input type="text" name="name"
+         value="{{ old.name ?? item.name ?? '' }}"
+         class="form-control {{ errs.name ? 'is-invalid' : '' }}"
+         maxlength="255" required>
+  {% if errs.name %}<div class="invalid-feedback">{{ errs.name }}</div>{% endif %}
+</div>
+
+<div class="mb-3">
+  <label class="form-label">السعر (ريال)</label>
+  <input type="text" name="price"
+         value="{{ old.price ?? item.price ?? '' }}"
+         class="form-control {{ errs.price ? 'is-invalid' : '' }}"
+         placeholder="0.00" required>
+  {% if errs.price %}<div class="invalid-feedback">{{ errs.price }}</div>{% endif %}
+</div>
+
+<div class="mb-3">
+  <label class="form-label">القسم</label>
+  {% set selectedCat = (old.cat_id ?? item.cat_id ?? '') %}
+  <select name="cat_id" class="form-select {{ errs.cat_id ? 'is-invalid' : '' }}" required>
+    <option value="" disabled {{ selectedCat == '' ? 'selected' : '' }}>اختر قسمًا</option>
+    {% for c in cats %}
+      <option value="{{ c.id }}" {{ selectedCat == c.id ? 'selected' : '' }}>
+        {{ c.name }}
+      </option>
+    {% endfor %}
+  </select>
+  {% if errs.cat_id %}<div class="invalid-feedback">{{ errs.cat_id }}</div>{% endif %}
+</div>
+
+<div class="mb-3">
+  <label class="form-label">الوصف</label>
+  <textarea name="desc" class="form-control" rows="4">{{ old.desc ?? item.desc ?? '' }}</textarea>
+</div>
+
+<div class="mb-3">
+  <label class="form-label">الحالة</label>
+  {% set sel = (old.status ?? item.status ?? 'inactive') %}
+  <select name="status" class="form-select">
+    <option value="active"  {{ sel == 'active'  ? 'selected' : '' }}>نشط</option>
+    <option value="inactive"{{ sel == 'inactive'? 'selected' : '' }}>غير نشط</option>
+  </select>
+</div>

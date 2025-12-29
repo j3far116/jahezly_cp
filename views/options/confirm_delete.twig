@@ -1,0 +1,26 @@
+{% extends "layout.twig" %}
+{% block title %}تأكيد حذف الخيار — {{ option.name }}{% endblock %}
+
+{% block content %}
+<h1 class="h4 mb-4">تأكيد حذف الخيار: {{ option.name }}</h1>
+
+{% if warning %}
+  <div class="alert alert-warning">
+    {{ warning|raw }}
+  </div>
+{% endif %}
+
+<form method="post" action="{{ base }}/{{ option.id }}/delete">
+  <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+  
+  {% if not is_used %}
+    <p>هل أنت متأكد أنك تريد حذف هذا الخيار؟</p>
+    <button type="submit" class="btn btn-danger">🗑️ حذف</button>
+  {% else %}
+    <p>لا يمكنك حذف هذا الخيار حاليًا.</p>
+    <button type="submit" class="btn btn-danger" disabled>🗑️ حذف</button>
+  {% endif %}
+  
+  <a href="{{ base }}" class="btn btn-secondary">إلغاء</a>
+</form>
+{% endblock %}

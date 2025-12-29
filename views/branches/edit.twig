@@ -7,10 +7,10 @@
     <h1 class="h4 mb-1">تعديل فرع</h1>
     <div class="text-muted">المتجر: <strong>{{ market.name }}</strong></div>
   </div>
-  <div class="d-flex gap-2">
+  {# <div class="d-flex gap-2">
     <a href="{{ branches_base }}/{{ id }}" class="btn btn-secondary">رجوع للتفاصيل</a>
     <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#confirmDeleteBranch">حذف</button>
-  </div>
+  </div> #}
 </div>
 
 <form method="post" action="{{ branches_base }}/{{ id }}">

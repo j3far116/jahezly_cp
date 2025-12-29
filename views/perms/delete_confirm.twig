@@ -1,0 +1,24 @@
+{% extends "layout.twig" %}
+{% block title %}تأكيد حذف الإعداد{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header">تأكيد الحذف</div>
+  <div class="card-body">
+    <p class="mb-3">
+      هل أنت متأكد من حذف البيرم
+      <code>{{ row.key }}</code>
+      من الفئة
+      <span class="badge bg-secondary">{{ row.type }}</span>؟
+    </p>
+
+    <div class="d-flex gap-2">
+<form method="post" action="{{ base }}/{{ row.key }}/delete">
+  {{ csrf_field()|raw }}
+  <button type="submit" class="btn btn-danger">تأكيد الحذف</button>
+</form>
+      <a class="btn btn-secondary" href="{{ base }}?type={{ row.type }}">إلغاء</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

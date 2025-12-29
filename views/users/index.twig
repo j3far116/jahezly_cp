@@ -67,7 +67,6 @@
         <td>{{ u.market_name ?: '—' }}</td>
         <td class="text-end">
           <a href="{{ base }}/{{ u.id }}/edit" class="btn btn-sm btn-outline-primary">تعديل</a>
-          <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#confirmDelete{{ u.id }}">حذف</button>
 
           <div class="modal fade" id="confirmDelete{{ u.id }}" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog"><div class="modal-content">

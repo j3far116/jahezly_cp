@@ -1,0 +1,37 @@
+{{ csrf_field()|raw }}
+
+{% set v_name   = old.name   ?? (row.name   ?? '') %}
+{% set v_group  = old.group_id ?? (row.group_id ?? '') %}
+{% set v_status = old.status ?? (row.status ?? 'active') %}
+
+<div class="row g-3">
+
+    <div class="col-md-5">
+        <label class="form-label">اسم التصنيف</label>
+        <input type="text" name="name" class="form-control"
+               value="{{ v_name }}" required maxlength="255">
+    </div>
+
+    <div class="col-md-4">
+        <label class="form-label">القروب</label>
+        <select name="group_id" class="form-select" required>
+            <option value="">— اختر القروب —</option>
+            {% for g in groups %}
+                <option value="{{ g.id }}"
+                    {% if v_group == g.id %}selected{% endif %}
+                >
+                    {{ g.name }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="col-md-3">
+        <label class="form-label">الحالة</label>
+        <select name="status" class="form-select">
+            <option value="active"   {{ v_status == 'active' ? 'selected' : '' }}>نشط</option>
+            <option value="inactive" {{ v_status == 'inactive' ? 'selected' : '' }}>غير نشط</option>
+        </select>
+    </div>
+
+</div>

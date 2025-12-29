@@ -23,8 +23,6 @@
         <tr>
           <th>#</th>
           <th>الفرع</th>
-          <th>النوع</th>
-          <th>الموقع</th>
           <th>الحالة</th>
           <th>العنوان</th>
           <th class="text-end">إجراءات</th>
@@ -32,11 +30,10 @@
       </thead>
 <tbody>
   {% for b in branches %}
-  {% set typeLabel = b.type == 1 ? 'المطاعم' : (b.type == 2 ? 'الكافيهات' : b.type) %}
+  
   <tr class="{{ (focus_branch_id is defined and focus_branch_id == b.id) ? 'table-warning' : '' }}">
     <td>{{ b.id }}</td>
     <td>{{ b.name }}</td>
-    <td>{{ typeLabel }}</td>
     <td>{{ b.location_name ?: '—' }}</td>
     <td>
       <span class="badge {{ b.status == 'active' ? 'bg-success' : 'bg-secondary' }}">
@@ -44,9 +41,13 @@
       </span>
     </td>
     <td>{{ b.address ?: '—' }}</td>
+
     <td class="text-end">
+<a href="{{ branches_base }}/{{ b.id }}/products" class="btn btn-sm btn-outline-primary">
+    تخصيص المنتجات
+  </a>
       <a href="{{ branches_base }}/{{ b.id }}" class="btn btn-sm btn-outline-primary">عرض</a>
-      {% if (scoped_market_id is null) or (scoped_market_id == market.id) %}
+      {% if auth.role == 'admin' %}
         <a href="{{ branches_base }}/{{ b.id }}/edit" class="btn btn-sm btn-outline-secondary">تعديل</a>
       {% endif %}
     </td>

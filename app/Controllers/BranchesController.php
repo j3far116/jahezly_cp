@@ -10,34 +10,38 @@ use App\Services\Gate;
 use App\Services\Scope;
 use App\Models\Market;
 use App\Models\Branch;
-use App\Models\Location; // ⬅️ جديد
+use App\Models\Location;
 
 final class BranchesController
 {
+    /* ============================================================
+       عرض فرع
+       ============================================================ */
     public function show(int $market_id, int $id): void
     {
-        Gate::allow(['admin','owner']);
+        Gate::allow(['admin']);
 
         $bp            = rtrim($_ENV['BASE_PATH'] ?? '/admincp', '/');
         $markets_base  = $bp . '/markets';
-        $branches_base = $markets_base . '/' . $market_id . '/branch';
+        $branches_base = "{$markets_base}/{$market_id}/branch";
 
+        // صلاحيات النطاق
         $scopedId = Scope::marketIdForCurrentUser();
-        if ($scopedId !== null && $scopedId !== (int)$market_id) {
+        if ($scopedId !== null && $scopedId !== $market_id) {
             Session::flash('error', 'غير مصرح لك بعرض هذا الفرع.');
             header("Location: {$markets_base}");
             return;
         }
 
-        $market = Market::findById((int)$market_id);
+        $market = Market::findById($market_id);
         if (!$market) {
             Session::flash('error', 'المتجر غير موجود.');
             header("Location: {$markets_base}");
             return;
         }
 
-        $branch = Branch::findWithLocation((int)$id);
-        if (!$branch || (int)$branch['market_id'] !== (int)$market_id) {
+        $branch = Branch::findWithLocation($id);
+        if (!$branch || (int)$branch['market_id'] !== $market_id) {
             Session::flash('error', 'الفرع غير موجود.');
             header("Location: {$markets_base}/{$market_id}");
             return;
@@ -45,7 +49,7 @@ final class BranchesController
 
         TwigService::refreshGlobals();
         echo TwigService::view()->render('branches/show.twig', [
-            'market'           => ['id'=>$market['id'],'name'=>$market['name']],
+            'market'           => ['id'=>$market['id'], 'name'=>$market['name']],
             'branch'           => $branch,
             'markets_base'     => $markets_base,
             'branches_base'    => $branches_base,
@@ -54,49 +58,61 @@ final class BranchesController
         ]);
     }
 
+    /* ============================================================
+       إنشاء فرع جديد
+       ============================================================ */
     public function create(int $market_id): void
     {
         Gate::allow(['admin']);
 
         $bp            = rtrim($_ENV['BASE_PATH'] ?? '/admincp', '/');
-        $markets_base  = $bp . '/markets';
-        $branches_base = $markets_base . '/' . $market_id . '/branch';
+        $markets_base  = "{$bp}/markets";
+        $branches_base = "{$markets_base}/{$market_id}/branch";
 
+        // التحقق من النطاق
         $scopedId = Scope::marketIdForCurrentUser();
-        if ($scopedId !== null && $scopedId !== (int)$market_id) {
+        if ($scopedId !== null && $scopedId !== $market_id) {
             Session::flash('error', 'غير مصرح لك بإضافة فرع لهذا المتجر.');
             header("Location: {$markets_base}");
             return;
         }
 
-        $market = Market::findById((int)$market_id);
+        $market = Market::findById($market_id);
         if (!$market) {
             Session::flash('error', 'المتجر غير موجود.');
             header("Location: {$markets_base}");
             return;
         }
 
-        $locations = Location::listActive(); // ⬅️ جلب المواقع
+        $locations = Location::listActive();
 
         TwigService::refreshGlobals();
         echo TwigService::view()->render('branches/create.twig', [
             'market'           => $market,
             'markets_base'     => $markets_base,
             'branches_base'    => $branches_base,
-            'locations'        => $locations, // ⬅️ تمرير للقالب
-            'values'           => ['name'=>'','type'=>'1','location_id'=>'','status'=>'inactive','address'=>''],
-            'errors'           => [],
-            '_csrf'            => Csrf::token(),
+            'locations'        => $locations,
+            'values'           => [
+                'name'        => '',
+                'location_id' => '',
+                'status'      => 'inactive',
+                'address'     => '',
+            ],
+            'errors' => [],
+            '_csrf'  => Csrf::token(),
         ]);
     }
 
+    /* ============================================================
+       حفظ فرع جديد
+       ============================================================ */
     public function store(int $market_id): void
     {
         Gate::allow(['admin']);
 
         $bp            = rtrim($_ENV['BASE_PATH'] ?? '/admincp', '/');
-        $markets_base  = $bp . '/markets';
-        $branches_base = $markets_base . '/' . $market_id . '/branch';
+        $markets_base  = "{$bp}/markets";
+        $branches_base = "{$markets_base}/{$market_id}/branch";
 
         if (!Csrf::check($_POST['_csrf'] ?? null)) {
             Session::flash('error', 'طلب غير صالح.');
@@ -105,104 +121,111 @@ final class BranchesController
         }
 
         $scopedId = Scope::marketIdForCurrentUser();
-        if ($scopedId !== null && $scopedId !== (int)$market_id) {
-            Session::flash('error', 'غير مصرح لك بإضافة فرع لهذا المتجر.');
+        if ($scopedId !== null && $scopedId !== $market_id) {
+            Session::flash('error', 'غير مصرح لك بإضافة فرع.');
             header("Location: {$markets_base}");
             return;
         }
 
-        $market = Market::findById((int)$market_id);
+        $market = Market::findById($market_id);
         if (!$market) {
             Session::flash('error', 'المتجر غير موجود.');
             header("Location: {$markets_base}");
             return;
         }
 
+        // ❌ النوع لم يعد موجوداً
         $values = [
-            'name'        => trim((string)($_POST['name'] ?? '')),
-            'type'        => (string)($_POST['type'] ?? ''),          // ⬅️ سيليكت
-            'location_id' => (string)($_POST['location_id'] ?? ''),   // ⬅️ سيليكت من locations
-            'status'      => (string)($_POST['status'] ?? 'inactive'),
-            'address'     => trim((string)($_POST['address'] ?? '')),
+            'name'        => trim($_POST['name'] ?? ''),
+            'location_id' => trim($_POST['location_id'] ?? ''),
+            'status'      => $_POST['status'] ?? 'inactive',
+            'address'     => trim($_POST['address'] ?? ''),
         ];
+
         $errors = $this->validate($values);
 
         if ($errors) {
             TwigService::refreshGlobals();
             echo TwigService::view()->render('branches/create.twig', [
-                'market'           => $market,
-                'markets_base'     => $markets_base,
-                'branches_base'    => $branches_base,
-                'locations'        => Location::listActive(), // ⬅️ تمرير عند إعادة العرض
-                'values'           => $values,
-                'errors'           => $errors,
-                '_csrf'            => Csrf::token(),
+                'market'        => $market,
+                'markets_base'  => $markets_base,
+                'branches_base' => $branches_base,
+                'locations'     => Location::listActive(),
+                'values'        => $values,
+                'errors'        => $errors,
+                '_csrf'         => Csrf::token(),
             ]);
             return;
         }
 
-        Branch::create((int)$market_id, $values);
+        Branch::create($market_id, $values);
+
         Session::flash('success', 'تم إنشاء الفرع بنجاح.');
         header("Location: {$markets_base}/{$market_id}");
     }
 
+    /* ============================================================
+       تعديل فرع
+       ============================================================ */
     public function edit(int $market_id, int $id): void
     {
-        Gate::allow(['admin','owner']);
+        Gate::allow(['admin']);
 
         $bp            = rtrim($_ENV['BASE_PATH'] ?? '/admincp', '/');
-        $markets_base  = $bp . '/markets';
-        $branches_base = $markets_base . '/' . $market_id . '/branch';
+        $markets_base  = "{$bp}/markets";
+        $branches_base = "{$markets_base}/{$market_id}/branch";
 
-        $market = Market::findById((int)$market_id);
+        $market = Market::findById($market_id);
         if (!$market) {
             Session::flash('error', 'المتجر غير موجود.');
             header("Location: {$markets_base}");
             return;
         }
 
-        $branch = Branch::findById((int)$id);
-        if (!$branch || (int)$branch['market_id'] !== (int)$market_id) {
+        $branch = Branch::findById($id);
+        if (!$branch || (int)$branch['market_id'] !== $market_id) {
             Session::flash('error', 'الفرع غير موجود.');
             header("Location: {$markets_base}/{$market_id}");
             return;
         }
 
         $scopedId = Scope::marketIdForCurrentUser();
-        if ($scopedId !== null && $scopedId !== (int)$market_id) {
+        if ($scopedId !== null && $scopedId !== $market_id) {
             Session::flash('error', 'غير مصرح لك بتعديل هذا الفرع.');
             header("Location: {$markets_base}/{$market_id}");
             return;
         }
 
-        $locations = Location::listActive(); // ⬅️ جلب المواقع
+        $locations = Location::listActive();
 
         TwigService::refreshGlobals();
         echo TwigService::view()->render('branches/edit.twig', [
-            'market'           => $market,
-            'id'               => (int)$id,
-            'markets_base'     => $markets_base,
-            'branches_base'    => $branches_base,
-            'locations'        => $locations, // ⬅️ تمرير للقالب
-            'values'           => [
-                'name'        => $branch['name'] ?? '',
-                'type'        => (string)($branch['type'] ?? '1'),
-                'location_id' => (string)($branch['location_id'] ?? ''),
-                'status'      => $branch['status'] ?? 'inactive',
-                'address'     => $branch['address'] ?? '',
+            'market'        => $market,
+            'id'            => $id,
+            'markets_base'  => $markets_base,
+            'branches_base' => $branches_base,
+            'locations'     => $locations,
+            'values'        => [
+                'name'        => $branch['name'],
+                'location_id' => $branch['location_id'],
+                'status'      => $branch['status'],
+                'address'     => $branch['address'],
             ],
-            'errors'           => [],
-            '_csrf'            => Csrf::token(),
+            'errors' => [],
+            '_csrf'  => Csrf::token(),
         ]);
     }
 
+    /* ============================================================
+       تحديث فرع
+       ============================================================ */
     public function update(int $market_id, int $id): void
     {
-        Gate::allow(['admin','owner']);
+        Gate::allow(['admin']);
 
         $bp            = rtrim($_ENV['BASE_PATH'] ?? '/admincp', '/');
-        $markets_base  = $bp . '/markets';
-        $branches_base = $markets_base . '/' . $market_id . '/branch';
+        $markets_base  = "{$bp}/markets";
+        $branches_base = "{$markets_base}/{$market_id}/branch";
 
         if (!Csrf::check($_POST['_csrf'] ?? null)) {
             Session::flash('error', 'طلب غير صالح.');
@@ -210,56 +233,60 @@ final class BranchesController
             return;
         }
 
-        $branch = Branch::findById((int)$id);
-        if (!$branch || (int)$branch['market_id'] !== (int)$market_id) {
+        $branch = Branch::findById($id);
+        if (!$branch || (int)$branch['market_id'] !== $market_id) {
             Session::flash('error', 'الفرع غير موجود.');
             header("Location: {$markets_base}/{$market_id}");
             return;
         }
 
         $scopedId = Scope::marketIdForCurrentUser();
-        if ($scopedId !== null && $scopedId !== (int)$market_id) {
+        if ($scopedId !== null && $scopedId !== $market_id) {
             Session::flash('error', 'غير مصرح لك بتعديل هذا الفرع.');
             header("Location: {$markets_base}/{$market_id}");
             return;
         }
 
         $values = [
-            'name'        => trim((string)($_POST['name'] ?? '')),
-            'type'        => (string)($_POST['type'] ?? ''),
-            'location_id' => (string)($_POST['location_id'] ?? ''),
-            'status'      => (string)($_POST['status'] ?? 'inactive'),
-            'address'     => trim((string)($_POST['address'] ?? '')),
+            'name'        => trim($_POST['name'] ?? ''),
+            'location_id' => trim($_POST['location_id'] ?? ''),
+            'status'      => $_POST['status'] ?? 'inactive',
+            'address'     => trim($_POST['address'] ?? ''),
         ];
+
         $errors = $this->validate($values);
 
         if ($errors) {
             TwigService::refreshGlobals();
             echo TwigService::view()->render('branches/edit.twig', [
-                'market'           => Market::findById((int)$market_id),
-                'id'               => (int)$id,
-                'markets_base'     => $markets_base,
-                'branches_base'    => $branches_base,
-                'locations'        => Location::listActive(), // ⬅️ تمرير عند إعادة العرض
-                'values'           => $values,
-                'errors'           => $errors,
-                '_csrf'            => Csrf::token(),
+                'market'        => Market::findById($market_id),
+                'id'            => $id,
+                'markets_base'  => $markets_base,
+                'branches_base' => $branches_base,
+                'locations'     => Location::listActive(),
+                'values'        => $values,
+                'errors'        => $errors,
+                '_csrf'         => Csrf::token(),
             ]);
             return;
         }
 
-        Branch::updateById((int)$id, $values);
+        Branch::updateById($id, $values);
+
         Session::flash('success', 'تم تحديث بيانات الفرع.');
         header("Location: {$branches_base}/{$id}");
     }
 
+    /* ============================================================
+       حذف فرع
+       ============================================================ */
     public function delete(int $market_id, int $id): void
     {
-        Gate::allow(['admin','owner']);
+        Gate::allow(['admin']);
 
         $bp            = rtrim($_ENV['BASE_PATH'] ?? '/admincp', '/');
-        $markets_base  = $bp . '/markets';
-        $branches_base = $markets_base . '/' . $market_id . '/branch';
+        $markets_base  = "{$bp}/markets";
+        $branches_base = "{$markets_base}/{$market_id}/branch";
 
         if (!Csrf::check($_POST['_csrf'] ?? null)) {
             Session::flash('error', 'طلب غير صالح.');
@@ -267,51 +294,47 @@ final class BranchesController
             return;
         }
 
-        $branch = Branch::findById((int)$id);
-        if (!$branch || (int)$branch['market_id'] !== (int)$market_id) {
+        $branch = Branch::findById($id);
+        if (!$branch || (int)$branch['market_id'] !== $market_id) {
             Session::flash('error', 'الفرع غير موجود.');
             header("Location: {$markets_base}/{$market_id}");
             return;
         }
 
         $scopedId = Scope::marketIdForCurrentUser();
-        if ($scopedId !== null && $scopedId !== (int)$market_id) {
+        if ($scopedId !== null && $scopedId !== $market_id) {
             Session::flash('error', 'غير مصرح لك بحذف هذا الفرع.');
             header("Location: {$markets_base}/{$market_id}");
             return;
         }
 
-        Branch::deleteById((int)$id);
+        Branch::deleteById($id);
+
         Session::flash('success', 'تم حذف الفرع بنجاح.');
         header("Location: {$markets_base}/{$market_id}");
     }
 
-    /** تحقق مُحدّث لمدخلات الفرع */
+    /* ============================================================
+       تحقق مدخلات — بدون النوع
+       ============================================================ */
     private function validate(array $v): array
     {
         $errors = [];
 
-        // الاسم
         if ($v['name'] === '' || mb_strlen($v['name']) < 2 || mb_strlen($v['name']) > 150) {
             $errors['name'] = 'الاسم مطلوب (2–150 حرف).';
         }
 
-        // النوع: سيليكت 1 أو 2
-        if ($v['type'] === '' || !ctype_digit($v['type']) || !in_array((int)$v['type'], [1, 2], true)) {
-            $errors['type'] = 'اختر النوع (المطاعم أو الكافيهات).';
-        }
+        // ليس هناك type بعد الآن
 
-        // الموقع: يجب أن يكون رقمًا لموقع موجود ومفعّل
         if ($v['location_id'] === '' || !ctype_digit($v['location_id']) || !Location::existsActive((int)$v['location_id'])) {
             $errors['location_id'] = 'اختر موقعًا صالحًا.';
         }
 
-        // الحالة
-        if ($v['status'] !== 'active' && $v['status'] !== 'inactive') {
+        if (!in_array($v['status'], ['active','inactive'], true)) {
             $errors['status'] = 'الحالة غير صحيحة.';
         }
 
-        // العنوان
         if (mb_strlen($v['address']) > 255) {
             $errors['address'] = 'العنوان أطول من 255 حرفًا.';
         }

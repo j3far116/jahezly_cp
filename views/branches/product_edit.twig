@@ -1,0 +1,39 @@
+{% extends "layout.twig" %}
+{% block title %}تخصيص المنتج — {{ product.name }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h5 mb-0">تخصيص: {{ product.name }}</h1>
+  <a href="/admincp/markets/{{ market_id }}/branch/{{ branch_id }}/products" class="btn btn-light">رجوع</a>
+</div>
+
+<form method="post" action="/admincp/markets/{{ market_id }}/branch/{{ branch_id }}/products/{{ product.id }}/save">
+  <input type="hidden" name="_csrf" value="{{ _csrf }}">
+
+  <div class="mb-3">
+    <label class="form-label">الاسم المخصص</label>
+    <input type="text" name="name" value="{{ override.name ?? '' }}" class="form-control">
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">الوصف المخصص</label>
+    <textarea name="desc" class="form-control" rows="3">{{ override.desc ?? '' }}</textarea>
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">السعر المخصص</label>
+    <input type="number" name="price" step="0.01" value="{{ override.price ?? '' }}" class="form-control">
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">الحالة</label>
+  <select name="status" class="form-select">
+    <option value="active"   {{ override.status == 'active' ? 'selected' }}>تفعيل التخصيص</option>
+    <option value="inactive" {{ override.status == 'inactive' ? 'selected' }}>تعطيل التخصيص والعودة للافتراضي</option>
+    <option value="disabled" {{ override.status == 'disabled' ? 'selected' }}>تعطيل المنتج في هذا الفرع</option>
+  </select>
+  </div>
+
+  <button type="submit" class="btn btn-primary">حفظ</button>
+</form>
+{% endblock %}

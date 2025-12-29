@@ -1,0 +1,31 @@
+{% set old  = old  is defined and old  is not null ? old  : {} %}
+{% set errs = errs is defined and errs is not null ? errs : {} %}
+
+<div class="mb-3">
+  <label class="form-label">الاسم</label>
+  <input type="text" name="name"
+         value="{{ old.name ?? item.name ?? '' }}"
+         class="form-control {{ errs.name ? 'is-invalid' : '' }}"
+         maxlength="100" required>
+  {% if errs.name %}<div class="invalid-feedback">{{ errs.name }}</div>{% endif %}
+</div>
+
+<div class="mb-3">
+  <label class="form-label">السعر (ريال)</label>
+  <input type="number" name="price"
+         value="{{ old.price ?? item.price ?? '0.00' }}"
+         class="form-control {{ errs.price ? 'is-invalid' : '' }}"
+         step="0.01" placeholder="0.00" required>
+  {% if errs.price %}<div class="invalid-feedback">{{ errs.price }}</div>{% endif %}
+</div>
+
+<div class="mb-3">
+  <label class="form-label">الحالة</label>
+  {% set sel = (old.available ?? item.available ?? 1) %}
+  <select name="available" class="form-select {{ errs.available ? 'is-invalid' : '' }}">
+    <option value="1" {{ sel == 1 ? 'selected' : '' }}>متاح</option>
+    <option value="0" {{ sel == 0 ? 'selected' : '' }}>غير متاح</option>
+  </select>
+  {% if errs.available %}<div class="invalid-feedback">{{ errs.available }}</div>{% endif %}
+</div>
+

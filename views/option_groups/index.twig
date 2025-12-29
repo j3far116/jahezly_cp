@@ -1,0 +1,82 @@
+{% extends "layout.twig" %}
+{% block title %}مجموعات الخيارات —
+	{{ product.name }}
+{% endblock %}
+
+{% block content %}
+	<div class="d-flex justify-content-between align-items-center mb-3">
+		<h1 class="h4 mb-0">مجموعات الخيارات:
+			{{ product.name }}</h1>
+		<div class="d-flex gap-2">
+			<a class="btn btn-light" href="{{ (app.base_path ?? '/admincp') ~ '/markets/' ~ market.id ~ '/products' }}">رجوع للمنتجات</a>
+			{% if (scoped_market_id is null) or (scoped_market_id == market.id) %}
+				<a class="btn btn-primary" href="{{ base }}/create">إضافة مجموعة</a>
+			{% endif %}
+		</div>
+	</div>
+
+	{% if success %}
+		<div class="alert alert-success">{{ success }}</div>
+	{% endif %}
+	{% if errors is not empty %}
+		<div class="alert alert-danger">
+			{% for k, v in errors %}
+				<div>{{ v }}</div>
+			{% endfor %}
+		</div>
+	{% endif %}
+
+	{% if groups is empty %}
+		<div class="alert alert-info">لا توجد مجموعات خيارات لهذا المنتج بعد.</div>
+	{% else %}
+		<div class="table-responsive">
+			<table class="table table-hover align-middle">
+				<thead class="table-light">
+					<tr>
+						<th style="width:70px">#</th>
+						<th>الاسم</th>
+						<th style="width:110px">النوع</th>
+						<th style="width:120px">إجباري؟</th>
+						<th style="width:120px">الحد الأدنى</th>
+						<th style="width:120px">الحد الأقصى</th>
+						<th style="width:140px">عدد الخيارات</th>
+						<th style="width:140px">الحالة</th>
+						<th style="width:220px">إجراءات</th>
+					</tr>
+				</thead>
+				<tbody class="table-group-divider">
+					{% for g in groups %}
+						<tr>
+							<td>{{ g.id }}</td>
+							<td>{{ g.name }}</td>
+							<td>
+								<span class="badge bg-info">{{ g.type == 'multi' ? 'متعدد' : 'مفرد' }}</span>
+							</td>
+							<td>
+								<span class="badge {{ g.required ? 'bg-danger' : 'bg-secondary' }}">
+									{{ g.required ? 'إجباري' : 'اختياري' }}
+								</span>
+							</td>
+							<td>{{ g.min ?? 0 }}</td>
+							<td>{{ g.max is not null ? g.max : '—' }}</td>
+							<td>{{ g.options_count ?? 0 }}</td>
+							<td>
+								<span class="badge {% if g.available %}bg-success{% else %}bg-secondary{% endif %}">
+									{% if g.available %}مفعلة{% else %}معطلة
+									{% endif %}
+								</span>
+							</td>
+							<td>
+								<div class="btn-group btn-group-sm" role="group" aria-label="إجراءات">
+									<a class="btn btn-outline-primary" href="{{ base }}/{{ g.id }}/customize">تخصيص</a>
+									<a class="btn btn-outline-secondary" href="{{ base }}/{{ g.id }}/edit">تعديل</a>
+									<a href="{{ base }}/{{ g.id }}/delete/confirm" class="btn btn-sm btn-outline-danger">حذف</a>
+								</div>
+							</td>
+						</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		</div>
+	{% endif %}
+{% endblock %}

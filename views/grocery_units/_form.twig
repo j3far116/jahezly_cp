@@ -1,0 +1,29 @@
+{{ csrf_field()|raw }}
+
+{% set v_name   = old.name   ?? (row.name   ?? '') %}
+{% set v_abbr   = old.abbreviation ?? (row.abbreviation ?? '') %}
+{% set v_status = old.status ?? (row.status ?? 'active') %}
+
+<div class="row g-3">
+
+    <div class="col-md-4">
+        <label class="form-label">اسم الوحدة</label>
+        <input type="text" name="name" class="form-control"
+               value="{{ v_name }}" required maxlength="100">
+    </div>
+
+    <div class="col-md-4">
+        <label class="form-label">الاختصار (مثل kg, L, pcs)</label>
+        <input type="text" name="abbreviation" class="form-control"
+               value="{{ v_abbr }}" required maxlength="20">
+    </div>
+
+    <div class="col-md-4">
+        <label class="form-label">الحالة</label>
+        <select name="status" class="form-select">
+            <option value="active"   {{ v_status == 'active' ? 'selected' : '' }}>نشطة</option>
+            <option value="inactive" {{ v_status == 'inactive' ? 'selected' : '' }}>غير نشطة</option>
+        </select>
+    </div>
+
+</div>

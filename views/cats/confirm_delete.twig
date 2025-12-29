@@ -1,0 +1,25 @@
+{% extends "layout.twig" %}
+{% block title %}تأكيد حذف القسم: {{ row.name }}{% endblock %}
+
+{% block content %}
+  <div class="card">
+    <div class="card-header">تأكيد الحذف</div>
+    <div class="card-body">
+      <p class="mb-3">
+        هل أنت متأكد من حذف القسم
+        <strong>{{ row.name }}</strong>
+        (ID: {{ row.id }}) من المتجر
+        <a href="{{ (app.base_path ?? '/admincp') }}/markets/{{ row.market_id }}">{{ market.name }}</a>؟
+      </p>
+
+      <div class="d-flex gap-2">
+        <form method="post" action="{{ base }}/{{ row.id }}/delete">
+          {{ csrf_field()|raw }}
+          <button type="submit" class="btn btn-danger">تأكيد الحذف</button>
+        </form>
+
+        <a class="btn btn-secondary" href="{{ base }}">إلغاء</a>
+      </div>
+    </div>
+  </div>
+{% endblock %}

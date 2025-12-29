@@ -32,13 +32,26 @@ final class Session
         $_SESSION['_last_seen'] = $now;
     }
 
-    public static function flash(string $key, ?string $value = null): ?string
-    {
-        if ($value === null) {
-            $val = $_SESSION['_flash'][$key] ?? null;
-            unset($_SESSION['_flash'][$key]);
-            return $val;
-        }
-        $_SESSION['_flash'][$key] = $value; return null;
+public static function flash(string $key, $value = null) // mixed
+{
+    if (!isset($_SESSION['_flash']) || !is_array($_SESSION['_flash'])) {
+        $_SESSION['_flash'] = [];
     }
+
+    if ($value === null) {
+        $val = $_SESSION['_flash'][$key] ?? null;
+        unset($_SESSION['_flash'][$key]);
+        return $val; // mixed
+    }
+
+    $_SESSION['_flash'][$key] = $value;
+    return null;
+}
+
+// اختياري: سحب مع قيمة افتراضية
+public static function pull(string $key, $default = null) {
+    $val = $_SESSION['_flash'][$key] ?? $default;
+    unset($_SESSION['_flash'][$key]);
+    return $val;
+}
 }

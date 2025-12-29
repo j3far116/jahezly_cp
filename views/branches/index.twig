@@ -24,7 +24,6 @@
         <tr>
           <th>#</th>
           <th>الفرع</th>
-          <th>النوع</th>
           <th>الموقع (ID)</th>
           <th>الحالة</th>
           <th>العنوان</th>
@@ -37,7 +36,6 @@
         <tr>
           <td>{{ b.id }}</td>
           <td>{{ b.name }}</td>
-          <td>{{ b.type }}</td>
           <td>{{ b.location_id }}</td>
           <td>
             <span class="badge {{ b.status == 'active' ? 'bg-success' : 'bg-secondary' }}">
@@ -48,7 +46,7 @@
           <td>{{ b.created_at }}</td>
           <td class="text-end">
             <a href="{{ base }}/{{ b.id }}" class="btn btn-sm btn-outline-primary">عرض</a>
-            {% if (scoped_market_id is null) or (scoped_market_id == market.id) %}
+            {% if auth.role == 'admin' %}
               <a href="{{ base }}/{{ b.id }}/edit" class="btn btn-sm btn-outline-secondary">تعديل</a>
               <form method="post" action="{{ base }}/{{ b.id }}/delete" class="d-inline"
                     onsubmit="return confirm('تأكيد الحذف؟');">

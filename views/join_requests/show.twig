@@ -1,0 +1,59 @@
+{% extends "layout.twig" %}
+{% block title %}تفاصيل الطلب{% endblock %}
+
+{% block content %}
+
+<h1 class="h5 mb-3">تفاصيل طلب الانضمام</h1>
+
+<div class="card">
+  <div class="card-body">
+
+    <dl class="row">
+      <dt class="col-sm-3">اسم المتجر</dt>
+      <dd class="col-sm-9">{{ req.store_name }}</dd>
+
+      <dt class="col-sm-3">اسم المالك</dt>
+      <dd class="col-sm-9">{{ req.owner_name }}</dd>
+
+      <dt class="col-sm-3">الهاتف</dt>
+      <dd class="col-sm-9">{{ req.phone }}</dd>
+
+      <dt class="col-sm-3">البريد</dt>
+      <dd class="col-sm-9">{{ req.email ?: '—' }}</dd>
+
+      <dt class="col-sm-3">المدينة</dt>
+      <dd class="col-sm-9">{{ req.city }}</dd>
+
+      <dt class="col-sm-3">التصنيف</dt>
+      <dd class="col-sm-9">{{ req.category }}</dd>
+
+      <dt class="col-sm-3">الموقع</dt>
+      <dd class="col-sm-9">
+        {% if req.lat and req.lng %}
+          <a href="https://maps.google.com/?q={{ req.lat }},{{ req.lng }}" 
+             target="_blank">فتح في الخرائط</a>
+        {% else %}
+          —
+        {% endif %}
+      </dd>
+
+      <dt class="col-sm-3">ملاحظات</dt>
+      <dd class="col-sm-9">{{ req.notes ?: '—' }}</dd>
+
+      <dt class="col-sm-3">التاريخ</dt>
+      <dd class="col-sm-9">{{ req.created_at }}</dd>
+    </dl>
+
+    <div class="text-end">
+      <form method="post" action="/admincp/join-requests/{{ req.id }}/delete"
+            onsubmit="return confirm('هل أنت متأكد من حذف هذا الطلب؟');">
+
+        <input type="hidden" name="_csrf" value="{{ _csrf }}">
+        <button class="btn btn-danger">حذف الطلب</button>
+      </form>
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}

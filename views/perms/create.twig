@@ -1,0 +1,189 @@
+{% extends "layout.twig" %}
+{% block title %}إضافة إعداد جديد{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h5 mb-0">إضافة إعداد</h1>
+    <a href="{{ base }}" class="btn btn-light">رجوع</a>
+</div>
+
+{% if errs %}
+<div class="alert alert-danger">{{ errs|nl2br }}</div>
+{% endif %}
+
+<form method="post" action="{{ base }}" enctype="multipart/form-data" class="card">
+    <div class="card-body">
+
+        {{ csrf_field()|raw }}
+
+        <div class="row g-3">
+
+            <!-- TYPE -->
+            <div class="col-md-4">
+                <label class="form-label">الفئة</label>
+                <select name="type" class="form-select" required>
+                    <option value="app_config">app_config</option>
+                    <option value="cpanel_config">cpanel_config</option>
+                    <option value="branches">branches</option>
+                    <option value="perms">perms</option>
+                </select>
+            </div>
+
+            <!-- KEY -->
+            <div class="col-md-4">
+                <label class="form-label">المفتاح (key)</label>
+                <input name="key" class="form-control" pattern="[a-z0-9._-]{1,100}" required>
+            </div>
+
+            <!-- VAL TYPE -->
+            <div class="col-md-4">
+                <label class="form-label">نوع القيمة</label>
+                <select name="val_type" id="val_type" class="form-select">
+                    <option value="text">text</option>
+                    <option value="textarea">textarea</option>
+                    <option value="select">select</option>
+                    <option value="switch">switch</option>
+                    <option value="image">image</option>
+                </select>
+            </div>
+
+            <!-- DESC -->
+            <div class="col-12">
+                <label class="form-label">الوصف</label>
+                <input type="text" name="desc" class="form-control">
+            </div>
+
+            <!-- STATUS -->
+            <div class="col-md-4">
+                <label class="form-label">الحالة</label>
+                <select name="status" class="form-select">
+                    <option value="active">active</option>
+                    <option value="inactive">inactive</option>
+                </select>
+            </div>
+
+            {# TEXT #}
+            <div class="col-12" id="wrap_text">
+                <label class="form-label">القيمة</label>
+                <input name="value_text" class="form-control">
+            </div>
+
+            {# TEXTAREA #}
+            <div class="col-12 d-none" id="wrap_textarea">
+                <label class="form-label">القيمة (نص طويل)</label>
+                <textarea name="value_textarea" rows="4" class="form-control"></textarea>
+            </div>
+
+            {# SELECT #}
+            <div class="col-12 d-none" id="wrap_select">
+                <label class="form-label">خيارات القائمة</label>
+
+                <table class="table table-bordered" id="opt_table">
+                    <thead>
+                        <tr>
+                            <th style="width:40%">Value</th>
+                            <th style="width:40%">Label</th>
+                            <th style="width:20%"></th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+
+                <button type="button"
+                        class="btn btn-sm btn-secondary mb-2"
+                        onclick="addOptRow()">+ خيار جديد</button>
+
+                {# هذا الحقل يُرسل مباشرة إلى PHP كـ JSON #}
+                <textarea name="options" id="options_json" class="d-none"></textarea>
+
+                <label class="form-label mt-2">القيمة المختارة (value)</label>
+                <input type="text"
+                       name="value_select"
+                       class="form-control text-start"
+                       style="direction:ltr">
+            </div>
+
+            {# SWITCH #}
+            <div class="col-12 d-none" id="wrap_switch">
+                <label class="form-label d-block">تشغيل / إيقاف</label>
+                <div class="form-check form-switch">
+                    <input type="checkbox"
+                           class="form-check-input"
+                           name="value_switch"
+                           id="switchInputCreate"
+                           value="1">
+                    <label class="form-check-label" for="switchInputCreate">
+                        تفعيل الإعداد
+                    </label>
+                </div>
+                <div class="form-text">يمكنك تحديد ما إذا كان الإعداد مفعلاً أو معطلاً.</div>
+            </div>
+
+            {# IMAGE #}
+            <div class="col-12 d-none" id="wrap_image">
+                <label class="form-label">صورة</label>
+                <input type="file" name="value_image" class="form-control">
+            </div>
+
+        </div>
+    </div>
+
+    <div class="card-footer d-flex justify-content-end">
+        <button class="btn btn-primary">حفظ</button>
+    </div>
+</form>
+
+{% endblock %}
+
+{% block page_scripts %}
+<script>
+(function () {
+    const sel = document.getElementById('val_type');
+
+    function syncFields() {
+        const v = sel.value;
+        document.getElementById('wrap_text').classList.toggle('d-none', v !== 'text');
+        document.getElementById('wrap_textarea').classList.toggle('d-none', v !== 'textarea');
+        document.getElementById('wrap_select').classList.toggle('d-none', v !== 'select');
+        document.getElementById('wrap_switch').classList.toggle('d-none', v !== 'switch');
+        document.getElementById('wrap_image').classList.toggle('d-none', v !== 'image');
+    }
+
+    sel.addEventListener('change', syncFields);
+    syncFields();
+
+    function updateRaw() {
+        const rows = document.querySelectorAll('#opt_table tbody tr');
+        const arr  = [];
+
+        rows.forEach(function (r) {
+            const v = r.querySelector('.v').value.trim();
+            const l = r.querySelector('.l').value.trim();
+            if (v.length > 0) {
+                arr.push({ value: v, label: l || v });
+            }
+        });
+
+document.getElementById('options_json').value = JSON.stringify(arr);
+    }
+
+    window.addOptRow = function (v = '', l = '') {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td><input class="form-control v" value="${v}" oninput="updateRaw()"></td>
+            <td><input class="form-control l" value="${l}" oninput="updateRaw()"></td>
+            <td class="text-center">
+                <button type="button" class="btn btn-sm btn-danger"
+                    onclick="this.closest('tr').remove(); updateRaw();">×</button>
+            </td>
+        `;
+        document.querySelector('#opt_table tbody').appendChild(tr);
+        updateRaw();
+    };
+
+    window.updateRaw = updateRaw;
+
+})();
+</script>
+{% endblock %}

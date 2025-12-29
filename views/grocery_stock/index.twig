@@ -1,0 +1,96 @@
+{% extends "layout.twig" %}
+{% block title %}مستودع البقالة — المنتجات{% endblock %}
+
+{% block content %}
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h4 mb-0">مستودع السوبرماركت</h1>
+
+        <div class="btn-group">
+            <a href="/admincp/grocery/groups" class="btn btn-outline-primary">القروبات</a>
+            <a href="/admincp/grocery/cats" class="btn btn-outline-primary">التصنيفات</a>
+            <a href="/admincp/grocery/brands" class="btn btn-outline-primary">العلامات التجارية</a>
+            <a href="/admincp/grocery/units" class="btn btn-outline-primary">الوحدات</a>
+        </div>
+    </div>
+
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+	<h1 class="h5 mb-0">مستودع المنتجات (Grocery Stock)</h1>
+	<a href="{{ base }}/create" class="btn btn-primary">إضافة منتج جديد</a>
+</div>
+
+{% if errs %}
+	<div class="alert alert-danger">{{ errs|join('<br>')|raw }}</div>
+{% endif %}
+
+{% if success %}
+	<div class="alert alert-success">{{ success }}</div>
+{% endif %}
+
+<div class="card">
+	<div class="card-body p-0">
+		<table class="table table-striped table-bordered mb-0 align-middle">
+			<thead class="table-light">
+				<tr>
+					<th class="text-center" style="width:60px;">#</th>
+					<th>الصورة</th>
+					<th>اسم المنتج</th>
+					<th>القسم</th>
+					<th>المجموعة</th>
+					<th>الباركود</th>
+					<th>العلامة التجارية</th>
+<th>الوحدة</th>
+					<th class="text-center" style="width:140px;">الإجراءات</th>
+				</tr>
+			</thead>
+			<tbody>
+
+				{% for item in items %}
+					<tr>
+						<td class="text-center">{{ item.id }}</td>
+
+						<td>
+							{% if item.image %}
+								<img src="/uploads/grocery/{{ item.image }}" style="height:50px;" class="rounded">
+							{% else %}
+								<span class="text-muted">بدون صورة</span>
+							{% endif %}
+						</td>
+
+						<td class="fw-bold">{{ item.name }}</td>
+
+						<td>{{ item.cat_name ?: '-' }}</td>
+
+						<td>{{ item.group_name ?: '-' }}</td>
+
+						<td>{{ item.barcode ?: '-' }}</td>
+<td>{{ item.brand_name ?: '-' }}</td>
+<td>
+    {% if item.unit_name %}
+        {{ item.unit_name }}{% if item.unit_abbr %} ({{ item.unit_abbr }}){% endif %}
+    {% else %}
+        -
+    {% endif %}
+</td>
+
+						<td class="text-center">
+							<a href="{{ base }}/{{ item.id }}/edit" class="btn btn-sm btn-warning">تعديل</a>
+							<a href="{{ base }}/{{ item.id }}/delete" class="btn btn-sm btn-danger"
+							   onclick="return confirm('هل أنت متأكد من حذف هذا المنتج؟');">
+							   حذف
+							</a>
+						</td>
+					</tr>
+				{% else %}
+					<tr>
+						<td colspan="7" class="text-center p-4 text-muted">لا توجد منتجات في المستودع.</td>
+					</tr>
+				{% endfor %}
+
+			</tbody>
+		</table>
+	</div>
+</div>
+
+{% endblock %}

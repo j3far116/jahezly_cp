@@ -1,0 +1,70 @@
+{% extends "layout.twig" %}
+
+{% block title %}العلامات التجارية للسوبرماركت{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h4 mb-0">العلامات التجارية للسوبرماركت</h1>
+
+    <div class="d-flex gap-2">
+        <a href="{{ base }}/create" class="btn btn-primary">+ إضافة علامة تجارية</a>
+        <a href="/admincp/grocery/stock" class="btn btn-outline-secondary">رجوع للمستودع</a>
+    </div>
+</div>
+
+{% if success %}
+    <div class="alert alert-success">{{ success }}</div>
+{% endif %}
+
+{% if errs %}
+    <div class="alert alert-danger">
+        {% for e in errs %}
+            <div>{{ e }}</div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+{% if brands is empty %}
+    <div class="alert alert-info mb-0">لا توجد علامات تجارية حتى الآن.</div>
+{% else %}
+    <table class="table table-bordered align-middle">
+        <thead class="table-light">
+            <tr>
+                <th style="width:70px;">#</th>
+                <th>الاسم</th>
+                <th style="width:120px;">الشعار</th>
+                <th style="width:120px;">الحالة</th>
+                <th style="width:170px;">إجراءات</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for b in brands %}
+                <tr>
+                    <td>{{ b.id }}</td>
+                    <td>{{ b.name }}</td>
+                    <td>
+                        {% if b.logo %}
+                            <img src="/uploads/grocery_brands/{{ b.logo }}" style="height:40px;" class="border rounded">
+                        {% else %}
+                            <span class="text-muted">لا يوجد</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="badge {{ b.status == 'active' ? 'bg-success' : 'bg-secondary' }}">
+                            {{ b.status == 'active' ? 'نشطة' : 'غير نشطة' }}
+                        </span>
+                    </td>
+                    <td>
+                        <a href="{{ base }}/{{ b.id }}/edit" class="btn btn-sm btn-outline-primary">تعديل</a>
+                        <a href="{{ base }}/{{ b.id }}/delete"
+                           onclick="return confirm('تأكيد حذف هذه العلامة؟');"
+                           class="btn btn-sm btn-outline-danger">حذف</a>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endif %}
+
+{% endblock %}

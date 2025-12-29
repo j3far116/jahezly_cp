@@ -132,7 +132,7 @@ $v = [
   'username'    => trim((string)($_POST['username'] ?? '')),
   'pin'         => trim((string)($_POST['pin'] ?? '')),
   'confirm_pin' => trim((string)($_POST['confirm_pin'] ?? '')),
-  'role'        => (string)($_POST['role'] ?? 'cashier'),
+  'role' => 'cashier',
   'status'      => (string)($_POST['status'] ?? 'active'),
   'branch_ids'  => (array)($_POST['branch_ids'] ?? []),
 ];
@@ -144,7 +144,6 @@ if ($un === '') $errors['username'] = 'username يجب أن يكون 3–20 (ح�
 elseif (!\App\Models\Cashier::isUsernameUnique((int)$marketId, $un)) $errors['username'] = 'username مستخدم مسبقًا في هذا المتجر.';
 if (!\App\Models\Cashier::isValidPin($v['pin'])) $errors['pin'] = 'PIN يجب أن يكون 4–8 أرقام.';
 if ($v['pin'] !== $v['confirm_pin']) $errors['confirm_pin'] = 'تأكيد PIN غير مطابق.';
-        if (!in_array($v['role'], ['owner','cashier'], true)) $errors['role'] = 'الدور غير صالح.';
         if (!in_array($v['status'], ['active','suspended','removed'], true)) $errors['status'] = 'الحالة غير صالحة.';
 
         if ($errors) {
@@ -209,7 +208,7 @@ if ($v['pin'] !== $v['confirm_pin']) $errors['confirm_pin'] = 'تأكيد PIN غ
 
         $name    = trim((string)($_POST['name'] ?? ''));
         $codeRaw = trim((string)($_POST['username'] ?? ''));
-        $role    = (string)($_POST['role'] ?? 'cashier');
+        $role    = 'cashier';
         $status  = (string)($_POST['status'] ?? 'active');
         $branchIds = (array)($_POST['branch_ids'] ?? []);
         $newPin  = trim((string)($_POST['new_pin'] ?? ''));
@@ -219,7 +218,6 @@ if ($v['pin'] !== $v['confirm_pin']) $errors['confirm_pin'] = 'تأكيد PIN غ
         $un = Cashier::sanitizeUsername($codeRaw);
         if ($un === '') $errors['username'] = 'username غير صالح.';
         if ($newPin !== '' && !Cashier::isValidPin($newPin)) $errors['new_pin'] = 'PIN يجب أن يكون 4-8 أرقام.';
-        if (!in_array($role, ['owner','cashier'], true)) $errors['role'] = 'الدور غير صالح.';
         if (!in_array($status, ['active','suspended','removed'], true)) $errors['status'] = 'الحالة غير صالحة.';
 
         if ($errors) {

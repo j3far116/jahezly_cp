@@ -1,0 +1,66 @@
+/* ===========================================
+   تخصيص صفحة إدارة خيارات المجموعة
+   =========================================== */
+
+/* تأثير السحب */
+.list-group-item {
+  cursor: grab;
+  transition: all 0.2s ease-in-out;
+}
+
+/* عند اختيار العنصر */
+.sortable-chosen {
+  background-color: #eaf5ff;
+  transform: scale(1.02);
+  box-shadow: 0 2px 6px rgba(0, 123, 255, 0.25);
+  border: 2px dashed #007bff;
+}
+
+/* أثناء السحب */
+.sortable-drag {
+  opacity: 0.9;
+  background-color: #dcefff;
+  border: 2px dashed #007bff;
+  transform: rotate(1deg) scale(1.05);
+}
+
+/* العنصر الشبح */
+.sortable-ghost {
+  opacity: 0.5;
+  background: #f8f9fa;
+  border: 2px dashed #007bff;
+}
+
+/* أيقونة السحب */
+.grip {
+  cursor: grab;
+  font-size: 18px;
+  color: #999;
+  user-select: none;
+  transition: color 0.2s;
+}
+
+.grip:hover {
+  color: #007bff;
+}
+
+/* Toast تحسين */
+.toast {
+  z-index: 1060;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* تحسين عام */
+.btn-outline-success, .btn-outline-danger {
+  transition: all 0.15s ease-in-out;
+}
+
+.btn-outline-success:hover {
+  background-color: #28a745;
+  color: #fff;
+}
+
+.btn-outline-danger:hover {
+  background-color: #dc3545;
+  color: #fff;
+}

@@ -1,0 +1,165 @@
+{% extends "layout.twig" %}
+{% block title %}الإعدادات والصلاحيات{% endblock %}
+
+{% block head_assets %}
+<style>
+    .perm-title {
+        font-weight: 800;
+        font-size: 17px;
+        color: #000;
+        text-align: right;
+    }
+    .perm-key {
+        font-size: 13px;
+        direction: ltr;
+        text-align: right;
+        color: #555;
+    }
+    .textarea-preview {
+        white-space: pre-wrap;
+        direction: rtl;
+        text-align: right;
+        margin: 0 !important;
+    }
+    .textarea-preview::first-line {
+        text-indent: 0 !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h4 mb-0">الإعدادات والصلاحيات</h1>
+    <a href="{{ base }}/create" class="btn btn-primary">إضافة</a>
+</div>
+
+{% if succ %}<div class="alert alert-success">{{ succ }}</div>{% endif %}
+{% if errs %}<div class="alert alert-danger">{{ errs|nl2br }}</div>{% endif %}
+
+<ul class="nav nav-pills mb-3">
+    <li class="nav-item"><a class="nav-link {{ type=='' ? 'active' : '' }}" href="{{ base }}">الكل</a></li>
+    <li class="nav-item"><a class="nav-link {{ type=='app_config' ? 'active' : '' }}" href="{{ base }}?type=app_config">التطبيق</a></li>
+    <li class="nav-item"><a class="nav-link {{ type=='cpanel_config' ? 'active' : '' }}" href="{{ base }}?type=cpanel_config">لوحة التحكم</a></li>
+    <li class="nav-item"><a class="nav-link {{ type=='branches' ? 'active' : '' }}" href="{{ base }}?type=branches">الفروع</a></li>
+    <li class="nav-item"><a class="nav-link {{ type=='perms' ? 'active' : '' }}" href="{{ base }}?type=perms">الصلاحيات</a></li>
+</ul>
+
+{% if rows is empty %}
+    <div class="alert alert-info">لا توجد بيانات.</div>
+{% else %}
+
+<div class="accordion" id="permAcc">
+
+{% for r in rows %}
+    {% set slug = r.key|replace({'/':'-','.':'-',' ':'-'}) %}
+    {% set id   = 'perm_' ~ slug %}
+
+    <div class="accordion-item">
+
+        <h2 class="accordion-header">
+            <button class="accordion-button collapsed d-flex justify-content-between"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#{{ id }}">
+
+                <div class="flex-grow-1 text-end">
+                    {% if r.desc %}
+                        <div class="perm-title">{{ r.desc }}</div>
+                    {% endif %}
+                    <div class="perm-key">{{ r.key }}</div>
+                </div>
+
+                <div class="ms-3 text-end d-flex flex-column gap-1">
+                    <span class="badge bg-secondary">{{ r.type }}</span>
+
+                    <span class="badge {{ r.status=='active' ? 'bg-success' : 'bg-secondary' }}">
+                        {{ r.status=='active' ? 'مفعل' : 'معطل' }}
+                    </span>
+
+                    <span class="badge bg-info text-dark">{{ r.val_type }}</span>
+                </div>
+            </button>
+        </h2>
+
+        <div id="{{ id }}" class="accordion-collapse collapse" data-bs-parent="#permAcc">
+            <div class="accordion-body">
+
+                {# IMAGE #}
+                {% if r.val_type == 'image' %}
+                    {% if r.value %}
+                        <img src="/uploads/{{ r.value }}"
+                             class="rounded border mb-3"
+                             style="width:150px;height:100px;object-fit:cover">
+                    {% else %}
+                        <div class="text-muted mb-3">لا توجد صورة.</div>
+                    {% endif %}
+
+                {# SELECT #}
+                {% elseif r.val_type == 'select' %}
+
+                    <div class="mb-2">
+                        <strong>القيمة المختارة:</strong>
+                        <span class="badge bg-primary">{{ r.value ?: '—' }}</span>
+                    </div>
+
+                    {% if r.options_arr %}
+                        <strong>الخيارات:</strong>
+                        <ul class="mt-2">
+                            {% for op in r.options_arr %}
+                                <li>
+                                    <span style="font-family:monospace">{{ op.value }}</span>
+                                    — {{ op.label }}
+                                    {% if op.value == r.value %}
+                                        <span class="badge bg-success">مُختار</span>
+                                    {% endif %}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+
+                    {# =============== SWITCH =============== #}
+{% elseif r.val_type == 'switch' %}
+    <div class="mb-3">
+        <strong>القيمة:</strong>
+        <span class="badge {{ r.value == '1' ? 'bg-success' : 'bg-secondary' }}">
+            {{ r.value == '1' ? '1' : '0' }}
+        </span>
+    </div>
+
+
+                {# TEXTAREA #}
+                {% elseif r.val_type == 'textarea' %}
+                    <div class="mb-2">
+                        <strong>القيمة:</strong>
+                        <div class="textarea-preview border rounded p-3 mt-1">{{ r.value|trim|raw }}</div>
+                    </div>
+
+                {# TEXT أو SWITCH أو غيرها #}
+                {% else %}
+                    <div class="text-muted mb-3">
+                        <strong>القيمة:</strong> {{ r.value ?: '—' }}
+                    </div>
+                {% endif %}
+
+                {% if r.updated_at %}
+                    <div class="text-muted small mb-2">
+                        <strong>آخر تحديث:</strong> {{ r.updated_at }}
+                    </div>
+                {% endif %}
+
+                <a href="{{ base }}/{{ r.key }}/edit" class="btn btn-sm btn-outline-primary">تعديل</a>
+                {# <a href="{{ base }}/{{ r.key }}/delete/confirm" class="btn btn-sm btn-outline-danger">حذف</a> #}
+
+            </div>
+        </div>
+
+    </div>
+
+{% endfor %}
+
+</div>
+
+{% endif %}
+
+{% endblock %}

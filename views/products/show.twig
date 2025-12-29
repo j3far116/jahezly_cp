@@ -1,0 +1,108 @@
+{% extends "layout.twig" %}
+{% block title %}
+	{{ product.name }}
+	— منتج
+{% endblock %}
+
+{# CSS الخاص بـ Cropper #}
+{% block head_assets %}
+	<link rel="stylesheet" href="{{ url('/assets/cropper/cropper.min.css') }}">
+{% endblock %}
+
+{# JS الخاص بالقص/الرفع #}
+{% block page_scripts %} <script src="{{ url('/assets/cropper/cropper.min.js') }}"></script>
+	 <script src="{{ url('/assets/products-media.js') }}"></script>
+{% endblock %}
+
+{% set coverSrc = product.cover
+  ? url('/uploads/' ~ product.cover)
+  : url('/assets/img/cover-placeholder.jpg') %}
+
+
+{% set admin_base = app.base_path ?? '/admincp' %}
+
+
+{% block content %}
+	<div class="d-flex justify-content-between align-items-center mb-3">
+		<h1 class="h4 mb-0">{{ product.name }}</h1>
+		<div class="d-flex gap-2">
+			<a class="btn btn-light" href="{{ base }}">رجوع</a>
+			{% if (scoped_market_id is null) or (scoped_market_id == product.market_id) %}
+				<a class="btn btn-primary" href="{{ base }}/{{ product.id }}/edit">تعديل</a>
+			{% endif %}
+		</div>
+	</div>
+
+	<div class="row g-3">
+		<div class="col-md-6">
+			<div class="card">
+				<img id="product-cover-img"
+     class="card-img-top"
+     src="{{ product.cover ? '/uploads/' ~ product.cover : admin_base ~ '/assets/img/logo-placeholder.png' }}"
+     alt="غلاف المنتج"
+     style="height:240px;object-fit:cover">
+				<div class="card-body">
+					<div class="mb-2 text-muted">السعر:
+						{{ product.price }}</div>
+					<p class="mb-2">{{ product.desc ?: '—' }}</p>
+					<span class="badge {{ product.status == 'active' ? 'bg-success' : 'bg-secondary' }}">
+						{{ product.status == 'active' ? 'نشط' : 'غير نشط' }}
+					</span>
+				</div>
+			</div>
+		</div>
+
+		{% if (scoped_market_id is null) or (scoped_market_id == product.market_id) %}
+			<div class="col-md-6">
+				<div class="card">
+					<div class="card-header d-flex justify-content-between align-items-center">
+						<span>غلاف المنتج</span>
+						<button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#mediaCropModal" data-media="cover" data-market-id="{{ product.market_id }}" data-product-id="{{ product.id }}">
+							تغيير الغلاف
+						</button>
+					</div>
+					<div class="card-body">
+						<small class="text-muted">الصيغ: JPG, PNG, WEBP — الحد الأقصى 5MB</small>
+					</div>
+				</div>
+			</div>
+		{% endif %}
+	</div>
+
+	{# مودال القص/الرفع (نفس أسلوب المتاجر) #}
+	<div class="modal fade" id="mediaCropModal" tabindex="-1" aria-hidden="true">
+		<div class="modal-dialog modal-lg modal-dialog-centered">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h6 class="modal-title" id="mediaCropModalLabel">تحديث غلاف المنتج</h6>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+				</div>
+
+				<div class="modal-body">
+					<input type="hidden" id="_csrf_media" value="{{ csrf_token() }}">
+
+					<div class="mb-3">
+						<input type="file" id="media-file" class="form-control" accept="image/*">
+					</div>
+
+					<div id="cropper-wrap" class="border rounded overflow-hidden" style="height:420px;background:#f8f9fa;display:none;">
+						<img id="cropper-target" alt="منطقة القص" style="display:block;width:100%;height:100%;object-fit:contain;">
+					</div>
+
+					<div id="cropper-tools" class="d-flex flex-wrap gap-2 mt-2" style="display:none;">
+						<button type="button" class="btn btn-sm btn-outline-secondary" data-act="zoom-in">تكبير</button>
+						<button type="button" class="btn btn-sm btn-outline-secondary" data-act="zoom-out">تصغير</button>
+						<button type="button" class="btn btn-sm btn-outline-secondary" data-act="rotate-left">تدوير يسار</button>
+						<button type="button" class="btn btn-sm btn-outline-secondary" data-act="rotate-right">تدوير يمين</button>
+						<button type="button" class="btn btn-sm btn-outline-secondary" data-act="reset">إعادة</button>
+					</div>
+				</div>
+
+				<div class="modal-footer">
+					<button class="btn btn-light" data-bs-dismiss="modal">إلغاء</button>
+					<button class="btn btn-primary" id="btn-save-media" disabled>حفظ الغلاف</button>
+				</div>
+			</div>
+		</div>
+	</div>
+{% endblock %}

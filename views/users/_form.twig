@@ -23,7 +23,6 @@
       <option value="admin"  {{ values.role=='admin'  ? 'selected' : '' }}>مدير</option>
       <option value="owner"  {{ values.role=='owner'  ? 'selected' : '' }}>مالك</option>
       <option value="user"   {{ values.role=='user'   ? 'selected' : '' }}>مستخدم</option>
-      <option value="cashier"{{ values.role=='cashier'? 'selected' : '' }}>كاشير</option>
     </select>
     {% if errors.role %}<div class="invalid-feedback">{{ errors.role }}</div>{% endif %}
   </div>
