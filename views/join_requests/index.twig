@@ -6,7 +6,11 @@
 <h1 class="h5 mb-3">طلبات الانضمام</h1>
 
 {% if flash('success') %}
-<div class="alert alert-success">{{ flash('success') }}</div>
+  <div class="alert alert-success">{{ flash('success') }}</div>
+{% endif %}
+
+{% if flash('error') %}
+  <div class="alert alert-danger">{{ flash('error') }}</div>
 {% endif %}
 
 <div class="card">
@@ -21,10 +25,14 @@
             <tr>
               <th>#</th>
               <th>اسم المتجر</th>
-              <th>صاحب المتجر</th>
-              <th>الهاتف</th>
+              <th>المالك/المفوّض</th>
+              <th>السجل التجاري</th>
+              <th>الجوال</th>
+              <th>الإيميل</th>
               <th>المدينة</th>
-              <th>التصنيف</th>
+              <th>النشاط</th>
+              <th>الفروع</th>
+              <th>الموقع</th>
               <th>تاريخ الطلب</th>
               <th class="text-end">إجراءات</th>
             </tr>
@@ -32,40 +40,66 @@
 
           <tbody>
             {% for r in rows %}
-            <tr>
-              <td>{{ r.id }}</td>
-              <td>{{ r.store_name }}</td>
-              <td>{{ r.owner_name }}</td>
-              <td>{{ r.phone }}</td>
-              <td>{{ r.city }}</td>
-              <td>{{ r.category }}</td>
-              <td>{{ r.created_at }}</td>
+              <tr>
+                <td>{{ r.id }}</td>
 
+                <td>{{ r.business_name }}</td>
+                <td>{{ r.owner_or_authorized }}</td>
 
-<td class="text-end">
-    {# زر فتح الخرائط #}
-    {% if r.lat and r.lng %}
-      <a href="https://maps.google.com/?q={{ r.lat }},{{ r.lng }}"
-         target="_blank"
-         class="btn btn-sm btn-outline-success">
-         الموقع
-      </a>
-    {% endif %}
-</td>
+                <td>
+                  {% if r.commercial_record %}
+                    {{ r.commercial_record }}
+                  {% else %}
+                    <span class="text-muted">—</span>
+                  {% endif %}
+                </td>
 
+                <td dir="ltr">{{ r.phone }}</td>
 
-              <td class="text-end">
-                <a href="/admincp/join-requests/{{ r.id }}" class="btn btn-sm btn-outline-primary">
-                  عرض
-                </a>
+                <td dir="ltr">
+                  {% if r.email %}
+                    {{ r.email }}
+                  {% else %}
+                    <span class="text-muted">—</span>
+                  {% endif %}
+                </td>
 
-                <a href="/admincp/join-requests/{{ r.id }}/confirm-delete"
-                   class="btn btn-sm btn-outline-danger">
-                  حذف
-                </a>
-              </td>
+                <td>{{ r.city }}</td>
+                <td>{{ r.activity }}</td>
 
-            </tr>
+                <td>
+                  {% if r.branches_count %}
+                    <span class="badge bg-secondary">{{ r.branches_count }}</span>
+                  {% else %}
+                    <span class="text-muted">—</span>
+                  {% endif %}
+                </td>
+
+                <td>
+                  {% if r.lat and r.lng %}
+                    <a href="https://maps.google.com/?q={{ r.lat }},{{ r.lng }}"
+                       target="_blank"
+                       class="btn btn-sm btn-outline-success">
+                      الموقع
+                    </a>
+                  {% else %}
+                    <span class="text-muted">—</span>
+                  {% endif %}
+                </td>
+
+                <td dir="ltr">{{ r.created_at }}</td>
+
+                <td class="text-end">
+                  <a href="/admincp/join-requests/{{ r.id }}" class="btn btn-sm btn-outline-primary">
+                    عرض
+                  </a>
+
+                  <a href="/admincp/join-requests/{{ r.id }}/confirm-delete"
+                     class="btn btn-sm btn-outline-danger">
+                    حذف
+                  </a>
+                </td>
+              </tr>
             {% endfor %}
           </tbody>
 

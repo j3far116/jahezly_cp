@@ -319,4 +319,20 @@ $router->post("$R/grocery/units/{id:\d+}/update",    [\App\Controllers\GroceryUn
 $router->get("$R/grocery/units/{id:\d+}/delete",     [\App\Controllers\GroceryUnitsController::class, 'delete']);
 
 
+
+// =============================
+// Grocery Units (الوحدات)
+// =============================
+$router->post(
+    '/admincp/grocery/stock/{market_id}/add',
+    [\App\Controllers\GroceryStockController::class, 'addToMarket']
+);
+
+$router->post(
+    '/admincp/grocery/stock/{market_id}/remove',
+    [\App\Controllers\GroceryStockController::class, 'removeFromMarket']
+);
+
+
+
 $router->dispatch($_SERVER['REQUEST_METHOD'], $_SERVER['REQUEST_URI']);

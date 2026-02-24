@@ -40,12 +40,18 @@
         {{ b.status == 'active' ? 'نشط' : 'غير نشط' }}
       </span>
     </td>
+    
     <td>{{ b.address ?: '—' }}</td>
 
     <td class="text-end">
-<a href="{{ branches_base }}/{{ b.id }}/products" class="btn btn-sm btn-outline-primary">
+
+{% if market.type != 3 %}
+  <a href="{{ branches_base }}/{{ b.id }}/products"
+     class="btn btn-sm btn-outline-primary">
     تخصيص المنتجات
   </a>
+{% endif %}
+  
       <a href="{{ branches_base }}/{{ b.id }}" class="btn btn-sm btn-outline-primary">عرض</a>
       {% if auth.role == 'admin' %}
         <a href="{{ branches_base }}/{{ b.id }}/edit" class="btn btn-sm btn-outline-secondary">تعديل</a>

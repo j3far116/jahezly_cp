@@ -18,7 +18,10 @@
 			{% endif %}
 			{% if (scoped_market_id is null) or (scoped_market_id == market.id) %}
 				{% if market.type == 3 %}
-					
+  <a class="btn btn-sm btn-outline-success"
+     href="/admincp/markets/{{ market.id }}/grocery">
+    إدارة منتجات المستودع
+  </a>
 				{% else %}
 					<a class="btn btn-outline-secondary" href="{{ base }}/{{ market.id }}/options">الإضافات</a>
 					<a class="btn btn-outline-primary" href="{{ base }}/{{ market.id }}/products">منتجات المتجر</a>

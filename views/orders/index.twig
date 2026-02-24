@@ -36,7 +36,13 @@
         <tr>
           <td><a href="{{ url('/orders/' ~ o.id) }}">{{ o.id }}</a></td>
           <td>{{ o.user_id }}</td>
-          <td>{{ o.market_name }} ({{ o.market_id }})</td>
+          <td>
+  {{ o.market_name }}
+  {% if o.branch_name %}
+    — {{ o.branch_name }}
+  {% endif %}
+</td>
+
           <td>{{ o.total }}</td>
           <td>{{ o.status }}</td>
           <td>{{ o.pay_type }}</td>

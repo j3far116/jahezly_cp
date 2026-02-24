@@ -105,7 +105,21 @@ final class Order
         $offset = ($page - 1) * $perPage;
 
         // البيانات
-        $sql = "SELECT * FROM orders {$whereSql} {$orderBy} LIMIT :limit OFFSET :offset";
+$sql = "
+    SELECT 
+        o.*,
+        m.name AS market_name,
+        b.name AS branch_name,
+        CONCAT(m.name, ' — ', b.name) AS market_branch_name
+    FROM orders o
+    LEFT JOIN branches b ON b.id = o.branch_id
+    LEFT JOIN markets m ON m.id = b.market_id
+    {$whereSql}
+    {$orderBy}
+    LIMIT :limit OFFSET :offset
+";
+
+
         $st = $pdo->prepare($sql);
 
         foreach ($params as $k => $v) {

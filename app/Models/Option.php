@@ -80,23 +80,24 @@ public static function allForMarket(int $market_id): array
     /**
      * إنشاء خيار جديد (عام أو خاص)
      */
-    public static function create(array $data): int
-    {
-        $pdo = DB::pdo();
-        $stmt = $pdo->prepare("
-            INSERT INTO " . self::$table . " (market_id, product_id, name, price, available)
-            VALUES (:market_id, :product_id, :name, :price, :available)
-        ");
-        $stmt->execute([
-            'market_id' => $data['market_id'],
-            'product_id' => $data['product_id'] ?? null,
-            'name' => $data['name'],
-            'price' => $data['price'],
-            'available' => $data['available'] ?? 1,
-        ]);
-        return (int)$pdo->lastInsertId();
-    }
+public static function create(array $data): int
+{
+    $pdo = DB::pdo();
 
+    $stmt = $pdo->prepare("
+        INSERT INTO " . self::$table . " (market_id, name, price, available)
+        VALUES (:market_id, :name, :price, :available)
+    ");
+
+    $stmt->execute([
+        'market_id'  => (int)$data['market_id'],
+        'name'       => $data['name'],
+        'price'      => $data['price'],
+        'available'  => (int)($data['available'] ?? 1),
+    ]);
+
+    return (int)$pdo->lastInsertId();
+}
     /**
      * جلب خيار واحد
      */

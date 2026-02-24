@@ -211,7 +211,7 @@ public function store(int $market_id)
 
     
 
-    /* public function update(int $market_id, int $id)
+    public function update(int $market_id, int $id)
     {
         if (!Csrf::check($_POST['_csrf'] ?? null)) {
             http_response_code(400);
@@ -230,7 +230,7 @@ public function store(int $market_id)
         $this->putFlash('success', 'تم تحديث المنتج');
         header('Location: ' . "{$admin}/markets/{$market_id}/products");
         exit;
-    } */
+    } 
 
     /* public function delete(int $market_id, int $id)
     {
