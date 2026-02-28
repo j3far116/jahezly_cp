@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Models;
@@ -15,7 +16,7 @@ final class Branch
     {
         $pdo = DB::pdo();
         $st  = $pdo->prepare(
-            "SELECT id, name, location_id, market_id, status, address, created_at
+            "SELECT id, name, subtitle, location_id, market_id, status, address, created_at
              FROM branches
              WHERE market_id = :mid
              ORDER BY id DESC"
@@ -31,7 +32,7 @@ final class Branch
     {
         $pdo = DB::pdo();
         $st  = $pdo->prepare(
-            "SELECT id, name, location_id, market_id, status, address, created_at
+            "SELECT id, name, subtitle, location_id, market_id, status, address, created_at
              FROM branches
              WHERE id = :id
              LIMIT 1"
@@ -48,11 +49,12 @@ final class Branch
     {
         $pdo = DB::pdo();
         $st  = $pdo->prepare(
-            "INSERT INTO branches (name, location_id, market_id, status, address)
-             VALUES (:name, :location_id, :market_id, :status, :address)"
+            "INSERT INTO branches (name, subtitle, location_id, market_id, status, address)
+     VALUES (:name, :subtitle, :location_id, :market_id, :status, :address)"
         );
         $st->execute([
             'name'        => $v['name'],
+            'subtitle'    => $v['subtitle'] !== '' ? $v['subtitle'] : null,
             'location_id' => (int)$v['location_id'],
             'market_id'   => $marketId,
             'status'      => $v['status'],
@@ -70,15 +72,17 @@ final class Branch
         $pdo = DB::pdo();
         $st  = $pdo->prepare(
             "UPDATE branches
-             SET name = :name,
-                 location_id = :location_id,
-                 status = :status,
-                 address = :address
-             WHERE id = :id"
+     SET name = :name,
+         subtitle = :subtitle,
+         location_id = :location_id,
+         status = :status,
+         address = :address
+     WHERE id = :id"
         );
         $st->execute([
             'id'          => $id,
             'name'        => $v['name'],
+            'subtitle'    => $v['subtitle'] !== '' ? $v['subtitle'] : null,
             'location_id' => (int)$v['location_id'],
             'status'      => $v['status'],
             'address'     => $v['address'] !== '' ? $v['address'] : null,

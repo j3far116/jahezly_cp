@@ -33,7 +33,12 @@
   
   <tr class="{{ (focus_branch_id is defined and focus_branch_id == b.id) ? 'table-warning' : '' }}">
     <td>{{ b.id }}</td>
-    <td>{{ b.name }}</td>
+    <td>
+  {{ b.name }}
+  {% if b.subtitle %}
+    <span class="text-muted small">  —  {{ b.subtitle }}</span>
+  {% endif %}
+</td>
     <td>{{ b.location_name ?: '—' }}</td>
     <td>
       <span class="badge {{ b.status == 'active' ? 'bg-success' : 'bg-secondary' }}">

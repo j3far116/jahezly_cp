@@ -40,11 +40,14 @@ final class CashiersController
 
     // خريطة الفروع للأسماء
     $branches = \App\Core\DB::pdo()
-        ->query("SELECT id, name FROM branches WHERE market_id = ".(int)$marketId." ORDER BY id DESC")
+        ->query("SELECT id, name, subtitle FROM branches WHERE market_id = ".(int)$marketId." ORDER BY id DESC")
         ->fetchAll(\PDO::FETCH_ASSOC) ?: [];
     $branchMap = [];
-    foreach ($branches as $b) $branchMap[(string)$b['id']] = $b['name'];
-
+foreach ($branches as $b) {
+    $label = $b['name'];
+    if (!empty($b['subtitle'])) $label .= ' — ' . $b['subtitle'];
+    $branchMap[(string)$b['id']] = $label;
+}
     // تمرير البيانات إلى الواجهة
     \App\Core\TwigService::refreshGlobals();
     echo \App\Core\TwigService::view()->render('cashiers/index.twig', [
@@ -101,7 +104,7 @@ public function adminIndex(): void
         if (!$market) { Session::flash('error','المتجر غير موجود.'); header('Location: '.$bp.'/markets'); return; }
 
         $branches = \App\Core\DB::pdo()
-            ->query("SELECT id, name FROM branches WHERE market_id = ".(int)$marketId." ORDER BY id DESC")
+            ->query("SELECT id, name, subtitle FROM branches WHERE market_id = ".(int)$marketId." ORDER BY id DESC")
             ->fetchAll(\PDO::FETCH_ASSOC) ?: [];
 
         TwigService::refreshGlobals();
@@ -148,7 +151,7 @@ if ($v['pin'] !== $v['confirm_pin']) $errors['confirm_pin'] = 'تأكيد PIN غ
 
         if ($errors) {
             $branches = \App\Core\DB::pdo()
-                ->query("SELECT id, name FROM branches WHERE market_id = ".(int)$marketId." ORDER BY id DESC")
+                ->query("SELECT id, name, subtitle FROM branches WHERE market_id = ".(int)$marketId." ORDER BY id DESC")
                 ->fetchAll(\PDO::FETCH_ASSOC) ?: [];
             TwigService::refreshGlobals();
             echo TwigService::view()->render('cashiers/create.twig', [
@@ -183,7 +186,7 @@ if ($v['pin'] !== $v['confirm_pin']) $errors['confirm_pin'] = 'تأكيد PIN غ
         $market = Market::findById((int)$marketId);
 
         $branches = \App\Core\DB::pdo()
-            ->query("SELECT id, name FROM branches WHERE market_id = ".(int)$marketId." ORDER BY id DESC")
+            ->query("SELECT id, name, subtitle FROM branches WHERE market_id = ".(int)$marketId." ORDER BY id DESC")
             ->fetchAll(\PDO::FETCH_ASSOC) ?: [];
 
         TwigService::refreshGlobals();

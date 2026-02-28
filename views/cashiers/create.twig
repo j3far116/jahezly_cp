@@ -77,7 +77,7 @@
 				<label class="form-label">الفروع المسموح بها (اختياري)</label>
 				<select name="branch_ids[]" class="form-select" size="6">
 					{% for b in branches %}
-						<option value="{{ b.id }}" {{ b.id in values.branch_ids ? 'selected' : '' }}>{{ b.name }}</option>
+						<option value="{{ b.id }}" {{ b.id in values.branch_ids ? 'selected' : '' }}>{{ b.name }}{% if b.subtitle %} — {{ b.subtitle }}{% endif %}</option>
 					{% else %}
 						<option value="">لا توجد فروع لهذا المتجر</option>
 					{% endfor %}

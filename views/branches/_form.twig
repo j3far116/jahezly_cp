@@ -4,6 +4,20 @@
   {% if errors.name %}<div class="invalid-feedback">{{ errors.name }}</div>{% endif %}
 </div>
 
+
+<div class="mb-3">
+  <label class="form-label">وصف مختصر للفرع (اختياري)</label>
+  <textarea
+    name="subtitle"
+    class="form-control {% if errors.subtitle %}is-invalid{% endif %}"
+    rows="2"
+    maxlength="255"
+    placeholder="مثال: جلسات عائلية + استلام من السيارة"
+  >{{ values.subtitle|default('') }}</textarea>
+  {% if errors.subtitle %}<div class="invalid-feedback">{{ errors.subtitle }}</div>{% endif %}
+  <div class="form-text">حد أقصى 255 حرف.</div>
+</div>
+
 <div class="row g-3">
   <div class="col-md-6">
     <label class="form-label">الموقع</label>

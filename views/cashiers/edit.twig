@@ -74,7 +74,7 @@
         <select name="branch_ids[]" class="form-select" size="6">
           {% set current = assign.branch_ids ?? [] %}
           {% for b in branches %}
-            <option value="{{ b.id }}" {{ b.id in current ? 'selected' : '' }}>{{ b.name }}</option>
+            <option value="{{ b.id }}" {{ b.id in current ? 'selected' : '' }}>{{ b.name }}{% if b.subtitle %} — {{ b.subtitle }}{% endif %}</option>
           {% else %}
             <option value="">لا توجد فروع لهذا المتجر</option>
           {% endfor %}

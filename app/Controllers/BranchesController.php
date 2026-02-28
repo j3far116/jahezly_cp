@@ -94,6 +94,7 @@ final class BranchesController
             'locations'        => $locations,
             'values'           => [
                 'name'        => '',
+                'subtitle'    => '',
                 'location_id' => '',
                 'status'      => 'inactive',
                 'address'     => '',
@@ -137,6 +138,7 @@ final class BranchesController
         // ❌ النوع لم يعد موجوداً
         $values = [
             'name'        => trim($_POST['name'] ?? ''),
+            'subtitle'    => trim($_POST['subtitle'] ?? ''),
             'location_id' => trim($_POST['location_id'] ?? ''),
             'status'      => $_POST['status'] ?? 'inactive',
             'address'     => trim($_POST['address'] ?? ''),
@@ -207,6 +209,7 @@ final class BranchesController
             'locations'     => $locations,
             'values'        => [
                 'name'        => $branch['name'],
+                'subtitle'    => $branch['subtitle'] ?? '',
                 'location_id' => $branch['location_id'],
                 'status'      => $branch['status'],
                 'address'     => $branch['address'],
@@ -249,6 +252,7 @@ final class BranchesController
 
         $values = [
             'name'        => trim($_POST['name'] ?? ''),
+            'subtitle'    => trim($_POST['subtitle'] ?? ''),
             'location_id' => trim($_POST['location_id'] ?? ''),
             'status'      => $_POST['status'] ?? 'inactive',
             'address'     => trim($_POST['address'] ?? ''),
@@ -324,6 +328,10 @@ final class BranchesController
         if ($v['name'] === '' || mb_strlen($v['name']) < 2 || mb_strlen($v['name']) > 150) {
             $errors['name'] = 'الاسم مطلوب (2–150 حرف).';
         }
+
+        if (mb_strlen($v['subtitle'] ?? '') > 255) {
+    $errors['subtitle'] = 'الوصف المختصر أطول من 255 حرفًا.';
+}
 
         // ليس هناك type بعد الآن
 
